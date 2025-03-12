@@ -48,7 +48,6 @@ struct ast_num_t final : public ast_expr_t {
 
     ipcl_val Iprocess(const symbol_table_t &) const override
     {
-        // std::cout << "inside num Iprocess\n";
         return val;
     }
     constexpr node_types get_type() const override
@@ -63,10 +62,7 @@ struct ast_var_t : public ast_expr_t {
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        // std::cout << "Inside var Iprocess\n";
         auto var_val = st.find(name)->second;
-        // std::cout << "\tGetten val for " << st.find(name)->first << ": "
-        //   << var_val.get() << std::endl;
         return ipcl_val{var_val.get()};
     }
     constexpr node_types get_type() const override
@@ -80,14 +76,13 @@ struct ast_var_t : public ast_expr_t {
 struct ast_lval_t : public ast_var_t {
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
-        // std::cout << "Inside lval Iprocess\n";
         IIterator res = st.find(name);
         return ipcl_val{res};
     }
     constexpr node_types get_type() const override { return node_types::LVAL; }
 
-    ast_lval_t(const std::string &namee /*, std::shared_ptr<ipcl_val> addres*/)
-        : ast_var_t(namee) /*, address(addres) */
+    ast_lval_t(const std::string &namee)
+        : ast_var_t(namee)
     {}
     virtual ~ast_lval_t() = default;
 };
@@ -196,18 +191,9 @@ struct ast_div_op final : public ast_bin_op_t {
 struct ast_assign_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        // std::cout << "Inside assign iprocess\n";
         int val = std::get<int>(rhs->Iprocess(st));
-        // auto lval_ptr =
         std::get<IIterator>(lhs->Iprocess(const_cast<symbol_table_t &>(st)))
             ->second.set(val);
-        // std::cout << "\t"
-        //           << (std::get<IIterator>(
-        //                   lhs->Iprocess(const_cast<symbol_table_t &>(st)))
-        //                   ->first)
-        //           << " = " << val << std::endl;
-        // std::cout << "\tLast val: " << lval_ptr.get() << std::endl;
-        // lval_ptr.set(val);
         return {val};
     }
     constexpr const char *op_str() const override { return "="; }
@@ -315,7 +301,6 @@ struct ast_un_op_t : public ast_expr_t {
 struct ast_print_op final : public ast_un_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        // std::cout << "In print Iprocess\n";
         int val = std::get<int>(rhs->Iprocess(st));
         std::cout << val << std::endl;
         return val;
@@ -342,7 +327,6 @@ struct ast_exprs_sequency_t final : public ast_node_t {
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        // std::cout << "Inside Seq Iprocess\n";
         ipcl_val res;
         for (auto &&it : seq)
             res = it->Iprocess(st);
@@ -388,8 +372,6 @@ public:
 
 template <smart_pointer T, class... Args> T make_node(Args &&... args)
 {
-    // std::cout << "\nMakind node: " << typeid(typename T::element_type).name()
-    //   << std::endl;
     return std::make_shared<typename T::element_type>(
         std::forward<Args>(args)...);
 }
@@ -471,7 +453,6 @@ class dot_ast_t final {
 private:
     void add_node(const ast_node_t &node, int id = 0)
     {
-        // std::cout << "In add node\n";
         switch (node.get_type())
         {
         case node_types::NUMBER:
@@ -537,6 +518,13 @@ class ast_dumper final {
     ast_node_dumper node_dumper_;
 
 private:
+    template <typename Vec> void dump_edges_invis(const Vec &edges) const
+    {
+        for (auto &&it : edges)
+            *debug_stream_ << "\t" << it.line.first << " -> " << it.line.second
+                           << " [style=invis]\n";
+    }
+
     template <typename Map> void dump_nodes(const Map &nodes) const
     {
         for (auto &&it : nodes)
@@ -559,6 +547,7 @@ public:
     {
         dot_ast_t dot_ast(&ast);
         *debug_stream_ << "digraph \"AST\"\n{\n";
+        dump_edges_invis(dot_ast.edges());
         dump_nodes(dot_ast.nodes());
         dump_edges(dot_ast.edges());
         *debug_stream_ << "}";

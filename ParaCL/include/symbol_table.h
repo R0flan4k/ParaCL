@@ -48,7 +48,6 @@ struct var_val_t final {
 };
 
 class symbol_table_t final {
-    // using ElT = typename std::shared_ptr<symbol_table_el_t>;
     using ElT = var_val_t;
     std::unordered_map<std::string, ElT> names_;
 

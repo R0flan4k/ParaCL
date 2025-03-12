@@ -29,7 +29,7 @@ NUM    {DIGIT}+
 "("     return yy::parser::token_type::LPAR;
 ")"     return yy::parser::token_type::RPAR;
 {NUM}   return yy::parser::token_type::NUMBER;
-{ID}    { return yy::parser::token_type::IDENT; std::cout << "ID\n"; } 
+{ID}    return yy::parser::token_type::IDENT; 
 .       return yy::parser::token_type::ERROR;
 
 %%

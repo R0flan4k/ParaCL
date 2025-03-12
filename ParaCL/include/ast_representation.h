@@ -23,8 +23,6 @@ public:
 
     bool is_in_symbol_table(const std::string &name) const
     {
-        // std::cout << "In st check: " << (st_.find(name) != st_.cend()) <<
-        // "\n";
         return st_.find(name) != st_.cend();
     }
 

@@ -5,9 +5,16 @@
 #include <memory>
 #include <fstream>
 
-int main()
+int main(int argc, char **argv)
 {
-    std::unique_ptr<FlexLexer> lexer = std::make_unique<yyFlexLexer>();
+    if (argc < 2)
+    {
+        std::cerr << "Input file expected.\n";
+        return 1;
+    }
+    std::ifstream stream(argv[1]);
+
+    std::unique_ptr<FlexLexer> lexer = std::make_unique<yyFlexLexer>(&stream);
     yy::DriverPCL driver(lexer.release());
     yy::ast_representation_t astr;
     driver.parse(&astr);
