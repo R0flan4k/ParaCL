@@ -46,10 +46,7 @@ struct ast_expr_t : public ast_node_t {
 struct ast_num_t final : public ast_expr_t {
     int val;
 
-    ipcl_val Iprocess(const symbol_table_t &) const override
-    {
-        return val;
-    }
+    ipcl_val Iprocess(const symbol_table_t &) const override { return val; }
     constexpr node_types get_type() const override
     {
         return node_types::NUMBER;
@@ -81,9 +78,7 @@ struct ast_lval_t : public ast_var_t {
     }
     constexpr node_types get_type() const override { return node_types::LVAL; }
 
-    ast_lval_t(const std::string &namee)
-        : ast_var_t(namee)
-    {}
+    ast_lval_t(const std::string &namee) : ast_var_t(namee) {}
     virtual ~ast_lval_t() = default;
 };
 

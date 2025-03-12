@@ -99,21 +99,4 @@ public:
     }
 };
 
-#if 0
-class symbol_table_builder_t final {
-public:
-    int operator()(symbol_table_t& st, const AST::ast_t& ast) const
-    {
-        auto root = ast.root();
-        visit<root.get_type()>(st, ast.root());
-    }
-
-    int <AST::node_types NT>
-    void visit(symbol_table& st, const AST::ast_node_t& node) const
-    {
-        assert(0 && "unreachable.");
-    }
-};
-#endif
-
 } // namespace AST
