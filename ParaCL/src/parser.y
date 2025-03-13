@@ -57,6 +57,7 @@
 %token <ident_tt> IDENT
 
 %nterm <stmts_nt>   stmts
+%nterm <expr_nt>    stmt
 %nterm <expr_nt>    expr
 %nterm <lval_nt>     lval
 %nterm <expr_nt>    epn
@@ -71,10 +72,13 @@
 program: stmts              { astr->set_root($1); }
 ;
 
-stmts: decl SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
-     | expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+stmts: stmt SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | SEMICOLON stmts      { $$ = std::move($2); }
      | %empty               { }
+;
+
+stmt: decl                  { $$ = std::move($1); }
+    | expr                  { $$ = std::move($1); }
 ;
 
 decl: lval apn              { 
@@ -91,7 +95,7 @@ lval: IDENT                 {
                             }
 ;
 
-apn: ASSIGNMENT expr        { $$ = make_node<assign_op_nt>($2); }
+apn: ASSIGNMENT stmt        { $$ = make_node<assign_op_nt>($2); }
 ;
 
 epn: epn PLUS     tpn       { $$ = make_node<plus_op_nt>($1, $3); }
@@ -108,7 +112,7 @@ tpn: tpn MULTIPLICATION fn  { $$ = make_node<mul_op_nt>($1, $3); }
    | fn
 ;
 
-fn: LPAR epn RPAR           { $$ = std::move($2); }
+fn: LPAR stmt RPAR          { $$ = std::move($2); }
   | NUMBER                  { $$ = make_node<number_nt>($1); }
   | IDENT                   { 
                               if (!(astr->is_in_symbol_table($1))) 
@@ -117,7 +121,7 @@ fn: LPAR epn RPAR           { $$ = std::move($2); }
                               $$ = make_node<var_nt>($1); 
                             }
   | WRITE                   { $$ = make_node<write_nt>(); }
-  | PRINT epn               { $$ = make_node<print_op_nt>($2); }
+  | PRINT stmt              { $$ = make_node<print_op_nt>($2); }
 ;
 
 %%

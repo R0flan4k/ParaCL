@@ -17,3 +17,4 @@ foreach(src_file ${srcfiles})
    		WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 		set_tests_properties(${src_file} PROPERTIES DEPENDS ParaCL.x)
 endforeach()
+

@@ -12,6 +12,7 @@ using number_nt = typename std::shared_ptr<AST::ast_num_t>;
 using var_nt = typename std::shared_ptr<AST::ast_var_t>;
 using lval_nt = typename std::shared_ptr<AST::ast_lval_t>;
 using stmts_nt = typename std::shared_ptr<AST::ast_statements_t>;
+using stmt_nt = typename std::shared_ptr<AST::ast_expr_t>;
 using expr_nt = typename std::shared_ptr<AST::ast_expr_t>;
 using write_nt = typename std::shared_ptr<AST::ast_write_t>;
 using bin_op_nt = typename std::shared_ptr<AST::ast_bin_op_t>;
