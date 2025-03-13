@@ -1,0 +1,14 @@
+x = (? + ?) / (? - ?);
+print x;
+
+y = x * 1024 + (z = 17);
+print y;
+print z;
+
+x = 66;
+print x;
+
+a = b = c = x + y + z;
+print a;
+print b;
+print c;
