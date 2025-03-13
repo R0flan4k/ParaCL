@@ -90,6 +90,8 @@ enum class ast_bin_ops {
     ASSIGNMENT,
     GREATER,
     LESS,
+    GREATEREQ,
+    LESSEQ,
     EQUAL,
     NOTEQUAL,
 };
@@ -242,6 +244,40 @@ struct ast_less_op final : public ast_bin_op_t {
     {}
 };
 
+struct ast_greatereq_op final : public ast_bin_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return {std::get<int>(lhs->Iprocess(st)) >=
+                std::get<int>(rhs->Iprocess(st))};
+    }
+    constexpr const char *op_str() const override { return ">="; }
+
+    ast_greatereq_op(std::shared_ptr<ast_expr_t> lhss,
+                     std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::GREATEREQ, lhss, rhss)
+    {}
+    ast_greatereq_op(std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::GREATEREQ, rhss)
+    {}
+};
+
+struct ast_lesseq_op final : public ast_bin_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return {std::get<int>(lhs->Iprocess(st)) <=
+                std::get<int>(rhs->Iprocess(st))};
+    }
+    constexpr const char *op_str() const override { return "<="; }
+
+    ast_lesseq_op(std::shared_ptr<ast_expr_t> lhss,
+                  std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::LESSEQ, lhss, rhss)
+    {}
+    ast_lesseq_op(std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::LESSEQ, rhss)
+    {}
+};
+
 struct ast_equal_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
@@ -318,7 +354,7 @@ struct ast_write_t final : public ast_expr_t {
 };
 
 struct ast_statements_t final : public ast_node_t {
-    using deque_t = std::deque<std::shared_ptr<ast_expr_t>>;
+    using deque_t = std::deque<std::shared_ptr<ast_node_t>>;
     deque_t seq;
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
@@ -333,8 +369,8 @@ struct ast_statements_t final : public ast_node_t {
         return node_types::STATEMENTS;
     }
     ast_statements_t() {}
-    ast_statements_t(std::shared_ptr<ast_expr_t> &expr,
-                     std::shared_ptr<ast_statements_t> &other)
+    ast_statements_t(std::shared_ptr<ast_node_t> expr,
+                     std::shared_ptr<ast_statements_t> other)
         : seq(other ? std::move(other->seq) : deque_t())
     {
         seq.emplace_front(std::move(expr));

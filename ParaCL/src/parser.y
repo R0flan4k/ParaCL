@@ -45,11 +45,15 @@
     ASSIGNMENT      "="
     GREATER         ">"
     LESS            "<"
+    GREATEREQ       ">="
+    LESSEQ          "<="
     EQUAL           "=="
     NOTEQUAL        "!="
     SEMICOLON       ";"
     LPAR            "("
     RPAR            ")"
+    LCURLY          "{"
+    RCURLY          "}"
     ERROR
 ;
 
@@ -57,14 +61,13 @@
 %token <ident_tt> IDENT
 
 %nterm <stmts_nt>   stmts
-%nterm <expr_nt>    stmt
+%nterm <expr_nt>    decl
 %nterm <expr_nt>    expr
 %nterm <lval_nt>     lval
 %nterm <expr_nt>    epn
 %nterm <assign_op_nt>    apn
 %nterm <expr_nt>    tpn
 %nterm <expr_nt>    fn
-%nterm <expr_nt>  decl
 
 %start program
 
@@ -72,13 +75,13 @@
 program: stmts              { astr->set_root($1); }
 ;
 
-stmts: stmt SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | SEMICOLON stmts      { $$ = std::move($2); }
      | %empty               { }
 ;
 
-stmt: decl                  { $$ = std::move($1); }
-    | expr                  { $$ = std::move($1); }
+expr: decl                  { $$ = std::move($1); }
+    | epn                   { $$ = std::move($1); }
 ;
 
 decl: lval apn              { 
@@ -87,23 +90,22 @@ decl: lval apn              {
                             }
 ;
 
-expr: epn                   { $$ = std::move($1); }
-;
-
 lval: IDENT                 { 
                               $$ = make_node<lval_nt>($1);
                             }
 ;
 
-apn: ASSIGNMENT stmt        { $$ = make_node<assign_op_nt>($2); }
+apn: ASSIGNMENT expr        { $$ = make_node<assign_op_nt>($2); }
 ;
 
-epn: epn PLUS     tpn       { $$ = make_node<plus_op_nt>($1, $3); }
-   | epn MINUS    tpn       { $$ = make_node<minus_op_nt>($1, $3); }
-   | epn EQUAL    tpn       { $$ = make_node<equal_op_nt>($1, $3); }
-   | epn NOTEQUAL tpn       { $$ = make_node<notequal_op_nt>($1, $3); }
-   | epn GREATER  tpn       { $$ = make_node<greater_op_nt>($1, $3); }
-   | epn LESS     tpn       { $$ = make_node<less_op_nt>($1, $3); }
+epn: epn PLUS      tpn      { $$ = make_node<plus_op_nt>($1, $3); }
+   | epn MINUS     tpn      { $$ = make_node<minus_op_nt>($1, $3); }
+   | epn EQUAL     tpn      { $$ = make_node<equal_op_nt>($1, $3); }
+   | epn NOTEQUAL  tpn      { $$ = make_node<notequal_op_nt>($1, $3); }
+   | epn GREATER   tpn      { $$ = make_node<greater_op_nt>($1, $3); }
+   | epn LESS      tpn      { $$ = make_node<less_op_nt>($1, $3); }
+   | epn GREATEREQ tpn      { $$ = make_node<greatereq_op_nt>($1, $3); }
+   | epn LESSEQ    tpn      { $$ = make_node<lesseq_op_nt>($1, $3); }
    | tpn                    { $$ = std::move($1); }
 ;
 
@@ -112,7 +114,7 @@ tpn: tpn MULTIPLICATION fn  { $$ = make_node<mul_op_nt>($1, $3); }
    | fn
 ;
 
-fn: LPAR stmt RPAR          { $$ = std::move($2); }
+fn: LPAR expr RPAR          { $$ = std::move($2); }
   | NUMBER                  { $$ = make_node<number_nt>($1); }
   | IDENT                   { 
                               if (!(astr->is_in_symbol_table($1))) 
@@ -121,7 +123,7 @@ fn: LPAR stmt RPAR          { $$ = std::move($2); }
                               $$ = make_node<var_nt>($1); 
                             }
   | WRITE                   { $$ = make_node<write_nt>(); }
-  | PRINT stmt              { $$ = make_node<print_op_nt>($2); }
+  | PRINT expr              { $$ = make_node<print_op_nt>($2); }
 ;
 
 %%
