@@ -73,7 +73,8 @@ program: stmts              { astr->set_root($1); }
 
 stmts: decl SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
-     | %empty               { $$; }
+     | SEMICOLON stmts      { $$ = std::move($2); }
+     | %empty               { }
 ;
 
 decl: lval apn              { 
