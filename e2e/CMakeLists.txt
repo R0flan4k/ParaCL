@@ -2,17 +2,18 @@
 
 cmake_minimum_required(VERSION 3.11)
 
-project(Matrixe2e)
+project(ParaCLe2e)
 
 enable_testing()
-set(MATRIX_TESTS "${CMAKE_CURRENT_SOURCE_DIR}/data")
+set(PARACL_TESTS "${CMAKE_CURRENT_SOURCE_DIR}/data")
 
-file(GLOB testfiles "${MATRIX_TESTS}/*.dat")
+file(GLOB testfiles "${PARACL_TESTS}/*.dat")
+file(GLOB srcfiles  "${PARACL_TESTS}/*.pcl")
 message("${CMAKE_BINARY_DIR}")
-foreach(file ${testfiles})
-  add_test(
-    NAME ${file}
-    COMMAND bash -c "${CMAKE_CURRENT_SOURCE_DIR}/runtest.sh ${file} ./Matrix.x"
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-set_tests_properties(${file} PROPERTIES DEPENDS Matrix.x)
+foreach(src_file ${srcfiles})
+      	add_test(
+    		NAME ${src_file}
+    		COMMAND bash -c "${CMAKE_CURRENT_SOURCE_DIR}/runtest.sh ${src_file} ./ParaCL.x"
+   		WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+		set_tests_properties(${src_file} PROPERTIES DEPENDS ParaCL.x)
 endforeach()

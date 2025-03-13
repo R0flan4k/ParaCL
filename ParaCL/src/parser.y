@@ -23,8 +23,6 @@
     }
 
     #include "parser.h"
-
-    #define YYDEBUG 1
 }
 
 %code
@@ -58,7 +56,7 @@
 %token <number_tt> NUMBER
 %token <ident_tt> IDENT
 
-%nterm <exprs_nt>   exprs
+%nterm <stmts_nt>   stmts
 %nterm <expr_nt>    expr
 %nterm <lval_nt>     lval
 %nterm <expr_nt>    epn
@@ -70,12 +68,12 @@
 %start program
 
 %%
-program: exprs              { astr->set_root($1); }
+program: stmts              { astr->set_root($1); }
 ;
 
-exprs: decl SEMICOLON exprs { $$ = make_node<exprs_nt>($1, $3); }
-     | expr SEMICOLON exprs { $$ = make_node<exprs_nt>($1, $3); }
-     | %empty               { $$ = make_node<exprs_nt>(); }
+stmts: decl SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+     | expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+     | %empty               { $$; }
 ;
 
 decl: lval apn              { 

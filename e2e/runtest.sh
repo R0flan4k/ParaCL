@@ -2,9 +2,10 @@ TEST=$1
 TESTER=$2
 
 ANS=${TEST%.*}.ans
+TESTDAT=${TEST%.*}.dat
 NAME=$(basename $TEST)
 
-eval ${TESTER} < $TEST > $NAME.log
+eval ${TESTER} ${TEST} < $TESTDAT > $NAME.log
 
 DIFF=$(diff -w $NAME.log ${ANS})
 

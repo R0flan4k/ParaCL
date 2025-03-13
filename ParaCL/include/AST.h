@@ -23,7 +23,7 @@ enum class node_types {
     VARIABLE,
     BIN_OP,
     UN_OP,
-    SEQUENCY,
+    STATEMENTS,
     WRITE,
     LVAL,
 };
@@ -317,8 +317,9 @@ struct ast_write_t final : public ast_expr_t {
     constexpr node_types get_type() const override { return node_types::WRITE; }
 };
 
-struct ast_exprs_sequency_t final : public ast_node_t {
-    std::deque<std::shared_ptr<ast_expr_t>> seq;
+struct ast_statements_t final : public ast_node_t {
+    using deque_t = std::deque<std::shared_ptr<ast_expr_t>>;
+    deque_t seq;
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
@@ -329,12 +330,12 @@ struct ast_exprs_sequency_t final : public ast_node_t {
     }
     constexpr node_types get_type() const override
     {
-        return node_types::SEQUENCY;
+        return node_types::STATEMENTS;
     }
-    ast_exprs_sequency_t() {}
-    ast_exprs_sequency_t(std::shared_ptr<ast_expr_t> &expr,
-                         std::shared_ptr<ast_exprs_sequency_t> &other)
-        : seq(std::move(other->seq))
+    ast_statements_t() {}
+    ast_statements_t(std::shared_ptr<ast_expr_t> &expr,
+                     std::shared_ptr<ast_statements_t> &other)
+        : seq(other ? std::move(other->seq) : deque_t())
     {
         seq.emplace_front(std::move(expr));
     }
@@ -405,8 +406,8 @@ private:
         case node_types::UN_OP:
             return static_cast<const ast_un_op_t &>(node).op_str();
             break;
-        case node_types::SEQUENCY:
-            return "Sequency";
+        case node_types::STATEMENTS:
+            return "Statements";
             break;
         case node_types::WRITE:
             return "Write";
@@ -474,10 +475,9 @@ private:
             add_node(*(static_cast<const ast_un_op_t &>(node).rhs), r_id);
             break;
         }
-        case node_types::SEQUENCY:
+        case node_types::STATEMENTS:
         {
-            for (auto &&it :
-                 static_cast<const ast_exprs_sequency_t &>(node).seq)
+            for (auto &&it : static_cast<const ast_statements_t &>(node).seq)
             {
                 int r_id = ids++;
                 nodes_.try_emplace(id, &node);
