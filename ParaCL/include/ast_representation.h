@@ -1,6 +1,7 @@
 #pragma once
 
 #include "AST.h"
+#include "AST_dumper.h"
 #include "symbol_table.h"
 
 namespace yy {

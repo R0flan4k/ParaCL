@@ -1,4 +1,5 @@
 #include "AST.h"
+#include "AST_dumper.h"
 #include "paracl.h"
 #include "ast_representation.h"
 
