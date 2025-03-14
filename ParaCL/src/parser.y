@@ -36,6 +36,7 @@
 }
 
 %token
+    IF              "if"
     PRINT           "print"
     WRITE           "?"
     PLUS            "+"
@@ -60,14 +61,19 @@
 %token <number_tt> NUMBER
 %token <ident_tt> IDENT
 
-%nterm <stmts_nt>   stmts
-%nterm <expr_nt>    decl
-%nterm <expr_nt>    expr
-%nterm <lval_nt>     lval
-%nterm <expr_nt>    epn
-%nterm <assign_op_nt>    apn
-%nterm <expr_nt>    tpn
-%nterm <expr_nt>    fn
+%nterm <stmts_nt>     stmts
+%nterm <expr_nt>      decl
+%nterm <expr_nt>      expr
+%nterm <lval_nt>      lval
+%nterm <expr_nt>      epn
+%nterm <assign_op_nt> apn
+%nterm <expr_nt>      tpn
+%nterm <expr_nt>      fn
+%nterm <node_nt>      stmt
+%nterm <node_nt>      cndtl
+%nterm <ifst_nt>      ifst
+%nterm <expr_nt>      cond
+%nterm <node_nt>      body
 
 %start program
 
@@ -75,13 +81,30 @@
 program: stmts              { astr->set_root($1); }
 ;
 
-stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+stmts: stmt SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | SEMICOLON stmts      { $$ = std::move($2); }
      | %empty               { }
 ;
 
+stmt: expr                  { $$ = std::move($1); }
+    | cndtl                 { $$ = std::move($1); }
+;
+
 expr: decl                  { $$ = std::move($1); }
     | epn                   { $$ = std::move($1); }
+;
+
+cndtl: ifst                 { $$ = std::move($1); }
+;
+
+ifst: IF cond body          { $$ = make_node<ifst_nt>($2, $3); }
+;
+
+cond: LPAR expr RPAR        { $$ = std::move($2); }
+;
+
+body: LCURLY stmts RCURLY   { $$ = std::move($2); }
+    | expr                  { $$ = std::move($1); }
 ;
 
 decl: lval apn              { 

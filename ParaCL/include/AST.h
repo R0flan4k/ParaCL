@@ -26,6 +26,7 @@ enum class node_types {
     STATEMENTS,
     WRITE,
     LVAL,
+    IF,
 };
 
 struct IIast_node_t {
@@ -377,6 +378,22 @@ struct ast_statements_t final : public ast_node_t {
     }
 };
 
+struct ast_if_t final : public ast_node_t {
+    std::shared_ptr<ast_expr_t> condition;
+    std::shared_ptr<ast_node_t> body;
+
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        if (std::get<int>(condition->Iprocess(st)))
+            return body->Iprocess(st);
+        return {};
+    }
+    constexpr node_types get_type() const override { return node_types::IF; }
+    ast_if_t(std::shared_ptr<ast_expr_t> cond, std::shared_ptr<ast_node_t> bod)
+        : condition(cond), body(bod)
+    {}
+};
+
 class IIast_t {
 public:
     virtual const ast_node_t &root() const = 0;
@@ -451,6 +468,9 @@ private:
         case node_types::LVAL:
             return "Left value\\n\\l " +
                    static_cast<const ast_var_t &>(node).name + " \\l";
+            break;
+        case node_types::IF:
+            return "if";
             break;
         default:
             assert(0 && "Unreachable.");
@@ -528,6 +548,16 @@ private:
         case node_types::LVAL:
             nodes_.try_emplace(id, &node);
             break;
+        case node_types::IF:
+        {
+            int cond_id = ids++, body_id = ids++;
+            nodes_.try_emplace(id, &node);
+            edges_.push_back({id, cond_id, "cond"});
+            edges_.push_back({id, body_id, "body"});
+            add_node(*(static_cast<const ast_if_t &>(node).condition), cond_id);
+            add_node(*(static_cast<const ast_if_t &>(node).body), body_id);
+            break;
+        }
         default:
             assert(0 && "Unreachable.");
             break;

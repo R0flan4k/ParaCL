@@ -14,6 +14,7 @@ NUM    {DIGIT}+
 %%
 
 {WS}
+"if"    return yy::parser::token_type::IF;
 "print" return yy::parser::token_type::PRINT;
 "?"     return yy::parser::token_type::WRITE;
 "+"     return yy::parser::token_type::PLUS;

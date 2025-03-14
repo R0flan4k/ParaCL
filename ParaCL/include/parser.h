@@ -17,6 +17,8 @@ using expr_nt = typename std::shared_ptr<AST::ast_expr_t>;
 using write_nt = typename std::shared_ptr<AST::ast_write_t>;
 using bin_op_nt = typename std::shared_ptr<AST::ast_bin_op_t>;
 using un_op_nt = typename std::shared_ptr<AST::ast_un_op_t>;
+using node_nt = typename std::shared_ptr<AST::ast_node_t>;
+using ifst_nt = typename std::shared_ptr<AST::ast_if_t>;
 
 using assign_op_nt = typename std::shared_ptr<AST::ast_assign_op>;
 using div_op_nt = typename std::shared_ptr<AST::ast_div_op>;
