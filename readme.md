@@ -30,3 +30,9 @@ conan install . --build=missing -s compiler.cppstd=gnu20
 cmake . -B build/Release -DCMAKE_TOOLCHAIN_FILE=build/Release/generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 cmake --build build/Release
 ```
+
+To compile ParaCL code use:
+
+```
+./build/Release/ParaCL <src_file_name>
+```
