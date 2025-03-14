@@ -15,6 +15,8 @@ NUM    {DIGIT}+
 
 {WS}
 "if"    return yy::parser::token_type::IF;
+"else"  return yy::parser::token_type::ELSE;
+"while" return yy::parser::token_type::WHILE;
 "print" return yy::parser::token_type::PRINT;
 "?"     return yy::parser::token_type::WRITE;
 "+"     return yy::parser::token_type::PLUS;

@@ -37,6 +37,8 @@
 
 %token
     IF              "if"
+    ELSE            "else"
+    WHILE           "while"
     PRINT           "print"
     WRITE           "?"
     PLUS            "+"
@@ -51,10 +53,10 @@
     EQUAL           "=="
     NOTEQUAL        "!="
     SEMICOLON       ";"
-    LPAR            "("
-    RPAR            ")"
     LCURLY          "{"
     RCURLY          "}"
+    LPAR            "("
+    RPAR            ")"
     ERROR
 ;
 
@@ -69,9 +71,10 @@
 %nterm <assign_op_nt> apn
 %nterm <expr_nt>      tpn
 %nterm <expr_nt>      fn
-%nterm <node_nt>      stmt
 %nterm <node_nt>      cndtl
 %nterm <ifst_nt>      ifst
+%nterm <ifst_nt>  ifelsest
+%nterm <whilest_nt>   whilest
 %nterm <expr_nt>      cond
 %nterm <node_nt>      body
 
@@ -81,30 +84,37 @@
 program: stmts              { astr->set_root($1); }
 ;
 
-stmts: stmt SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
+     | cndtl stmts          { $$ = make_node<stmts_nt>($1, $2); }
      | SEMICOLON stmts      { $$ = std::move($2); }
      | %empty               { }
 ;
 
-stmt: expr                  { $$ = std::move($1); }
-    | cndtl                 { $$ = std::move($1); }
-;
-
 expr: decl                  { $$ = std::move($1); }
     | epn                   { $$ = std::move($1); }
+    | %empty                { $$ = make_node<empty_op_nt>(); }
 ;
 
-cndtl: ifst                 { $$ = std::move($1); }
+cndtl: ifelsest             { $$ = std::move($1); }
+     | whilest              { $$ = std::move($1); }
+;
+
+ifelsest: ifst ELSE ifelsest  { $$ = make_node<ifelsest_nt>($1, $3); }
+        | ifst ELSE body      { $$ = make_node<ifelsest_nt>($1, $3); }
+        | ifst                { $$ = std::move($1); }
 ;
 
 ifst: IF cond body          { $$ = make_node<ifst_nt>($2, $3); }
+;
+
+whilest: WHILE cond body    { $$ = make_node<whilest_nt>($2, $3); }
 ;
 
 cond: LPAR expr RPAR        { $$ = std::move($2); }
 ;
 
 body: LCURLY stmts RCURLY   { $$ = std::move($2); }
-    | expr                  { $$ = std::move($1); }
+    | expr SEMICOLON        { $$ = std::move($1); }
 ;
 
 decl: lval apn              { 
@@ -147,6 +157,8 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
                             }
   | WRITE                   { $$ = make_node<write_nt>(); }
   | PRINT expr              { $$ = make_node<print_op_nt>($2); }
+  | MINUS fn                { $$ = make_node<unminus_op_nt>($2); }
+  | PLUS fn                 { $$ = make_node<unplus_op_nt>($2); }
 ;
 
 %%

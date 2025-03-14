@@ -27,6 +27,9 @@ enum class node_types {
     WRITE,
     LVAL,
     IF,
+    IFELSE,
+    WHILE,
+    EMPTY,
 };
 
 struct IIast_node_t {
@@ -69,6 +72,11 @@ struct ast_var_t : public ast_expr_t {
     }
     ast_var_t(const std::string &namee) : name(namee) {}
     virtual ~ast_var_t() = default;
+};
+
+struct ast_empty_op_t final : public ast_expr_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override { return {}; }
+    constexpr node_types get_type() const override { return node_types::EMPTY; }
 };
 
 struct ast_lval_t : public ast_var_t {
@@ -315,6 +323,8 @@ struct ast_notequal_op final : public ast_bin_op_t {
 
 enum class ast_un_ops {
     PRINT,
+    MINUS,
+    PLUS,
 };
 
 struct ast_un_op_t : public ast_expr_t {
@@ -341,6 +351,30 @@ struct ast_print_op final : public ast_un_op_t {
 
     ast_print_op(std::shared_ptr<ast_expr_t> rhss)
         : ast_un_op_t(ast_un_ops::PRINT, rhss)
+    {}
+};
+
+struct ast_unminus_op final : public ast_un_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return -std::get<int>(rhs->Iprocess(st));
+    }
+    constexpr const char *op_str() const override { return "-"; }
+
+    ast_unminus_op(std::shared_ptr<ast_expr_t> rhss)
+        : ast_un_op_t(ast_un_ops::MINUS, rhss)
+    {}
+};
+
+struct ast_unplus_op final : public ast_un_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return std::get<int>(rhs->Iprocess(st));
+    }
+    constexpr const char *op_str() const override { return "+"; }
+
+    ast_unplus_op(std::shared_ptr<ast_expr_t> rhss)
+        : ast_un_op_t(ast_un_ops::PLUS, rhss)
     {}
 };
 
@@ -374,11 +408,12 @@ struct ast_statements_t final : public ast_node_t {
                      std::shared_ptr<ast_statements_t> other)
         : seq(other ? std::move(other->seq) : deque_t())
     {
-        seq.emplace_front(std::move(expr));
+        if (expr)
+            seq.emplace_front(std::move(expr));
     }
 };
 
-struct ast_if_t final : public ast_node_t {
+struct ast_if_t : public ast_node_t {
     std::shared_ptr<ast_expr_t> condition;
     std::shared_ptr<ast_node_t> body;
 
@@ -390,6 +425,44 @@ struct ast_if_t final : public ast_node_t {
     }
     constexpr node_types get_type() const override { return node_types::IF; }
     ast_if_t(std::shared_ptr<ast_expr_t> cond, std::shared_ptr<ast_node_t> bod)
+        : condition(cond), body(bod)
+    {}
+    virtual ~ast_if_t() = default;
+};
+
+struct ast_ifelse_t final : public ast_if_t {
+    std::shared_ptr<ast_node_t> else_body;
+
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        if (std::get<int>(condition->Iprocess(st)))
+            return body->Iprocess(st);
+        return else_body->Iprocess(st);
+    }
+    constexpr node_types get_type() const override
+    {
+        return node_types::IFELSE;
+    }
+    ast_ifelse_t(std::shared_ptr<ast_if_t> ifst,
+                 std::shared_ptr<ast_node_t> else_bod)
+        : ast_if_t(*ifst), else_body(else_bod)
+    {}
+};
+
+struct ast_while_t final : public ast_node_t {
+    std::shared_ptr<ast_expr_t> condition;
+    std::shared_ptr<ast_node_t> body;
+
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        ipcl_val res;
+        while (std::get<int>(condition->Iprocess(st)))
+            res = body->Iprocess(st);
+        return res;
+    }
+    constexpr node_types get_type() const override { return node_types::WHILE; }
+    ast_while_t(std::shared_ptr<ast_expr_t> cond,
+                std::shared_ptr<ast_node_t> bod)
         : condition(cond), body(bod)
     {}
 };
@@ -472,6 +545,15 @@ private:
         case node_types::IF:
             return "if";
             break;
+        case node_types::IFELSE:
+            return "if else";
+            break;
+        case node_types::WHILE:
+            return "while";
+            break;
+        case node_types::EMPTY:
+            return "empty";
+            break;
         default:
             assert(0 && "Unreachable.");
             break;
@@ -507,12 +589,6 @@ private:
     {
         switch (node.get_type())
         {
-        case node_types::NUMBER:
-            nodes_.try_emplace(id, &node);
-            break;
-        case node_types::VARIABLE:
-            nodes_.try_emplace(id, &node);
-            break;
         case node_types::BIN_OP:
         {
             int l_id = ids++, r_id = ids++;
@@ -542,12 +618,6 @@ private:
             }
             break;
         }
-        case node_types::WRITE:
-            nodes_.try_emplace(id, &node);
-            break;
-        case node_types::LVAL:
-            nodes_.try_emplace(id, &node);
-            break;
         case node_types::IF:
         {
             int cond_id = ids++, body_id = ids++;
@@ -558,6 +628,38 @@ private:
             add_node(*(static_cast<const ast_if_t &>(node).body), body_id);
             break;
         }
+        case node_types::IFELSE:
+        {
+            int cond_id = ids++, body_id = ids++, else_body_id = ids++;
+            nodes_.try_emplace(id, &node);
+            edges_.push_back({id, cond_id, "cond"});
+            edges_.push_back({id, body_id, "body"});
+            edges_.push_back({id, else_body_id, "else_body"});
+            add_node(*(static_cast<const ast_ifelse_t &>(node).condition),
+                     cond_id);
+            add_node(*(static_cast<const ast_ifelse_t &>(node).body), body_id);
+            add_node(*(static_cast<const ast_ifelse_t &>(node).else_body),
+                     else_body_id);
+            break;
+        }
+        case node_types::WHILE:
+        {
+            int cond_id = ids++, body_id = ids++;
+            nodes_.try_emplace(id, &node);
+            edges_.push_back({id, cond_id, "cond"});
+            edges_.push_back({id, body_id, "body"});
+            add_node(*(static_cast<const ast_while_t &>(node).condition),
+                     cond_id);
+            add_node(*(static_cast<const ast_while_t &>(node).body), body_id);
+            break;
+        }
+        case node_types::WRITE:
+        case node_types::LVAL:
+        case node_types::NUMBER:
+        case node_types::VARIABLE:
+        case node_types::EMPTY:
+            nodes_.try_emplace(id, &node);
+            break;
         default:
             assert(0 && "Unreachable.");
             break;

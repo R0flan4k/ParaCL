@@ -19,6 +19,9 @@ using bin_op_nt = typename std::shared_ptr<AST::ast_bin_op_t>;
 using un_op_nt = typename std::shared_ptr<AST::ast_un_op_t>;
 using node_nt = typename std::shared_ptr<AST::ast_node_t>;
 using ifst_nt = typename std::shared_ptr<AST::ast_if_t>;
+using ifelsest_nt = typename std::shared_ptr<AST::ast_ifelse_t>;
+using whilest_nt = typename std::shared_ptr<AST::ast_while_t>;
+using empty_op_nt = typename std::shared_ptr<AST::ast_empty_op_t>;
 
 using assign_op_nt = typename std::shared_ptr<AST::ast_assign_op>;
 using div_op_nt = typename std::shared_ptr<AST::ast_div_op>;
@@ -32,6 +35,8 @@ using lesseq_op_nt = typename std::shared_ptr<AST::ast_lesseq_op>;
 using equal_op_nt = typename std::shared_ptr<AST::ast_equal_op>;
 using notequal_op_nt = typename std::shared_ptr<AST::ast_notequal_op>;
 using print_op_nt = typename std::shared_ptr<AST::ast_print_op>;
+using unminus_op_nt = typename std::shared_ptr<AST::ast_unminus_op>;
+using unplus_op_nt = typename std::shared_ptr<AST::ast_unplus_op>;
 
 using AST::make_node;
 using AST::node_cast;

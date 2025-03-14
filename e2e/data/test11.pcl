@@ -1,0 +1,12 @@
+x = ?;
+
+if (x < 90)
+{
+	print 111;
+}
+else if (x > 110)
+{
+	print 222;
+}
+else
+	print 333;
