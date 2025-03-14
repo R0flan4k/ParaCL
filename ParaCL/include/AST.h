@@ -117,7 +117,6 @@ struct ast_bin_op_t : public ast_expr_t {
                  std::shared_ptr<ast_expr_t> rhss)
         : op(opp), lhs(std::move(lhss)), rhs(std::move(rhss))
     {}
-
     ast_bin_op_t(ast_bin_ops opp, std::shared_ptr<ast_expr_t> rhss)
         : op(opp), rhs(std::move(rhss))
     {}
@@ -138,9 +137,6 @@ struct ast_plus_op final : public ast_bin_op_t {
                 std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::PLUS, lhss, rhss)
     {}
-    ast_plus_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::PLUS, rhss)
-    {}
 };
 
 struct ast_minus_op final : public ast_bin_op_t {
@@ -154,9 +150,6 @@ struct ast_minus_op final : public ast_bin_op_t {
     ast_minus_op(std::shared_ptr<ast_expr_t> lhss,
                  std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::MINUS, lhss, rhss)
-    {}
-    ast_minus_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::MINUS, rhss)
     {}
 };
 
@@ -172,9 +165,6 @@ struct ast_mul_op final : public ast_bin_op_t {
                std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::MULTIPLICATION, lhss, rhss)
     {}
-    ast_mul_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::MULTIPLICATION, rhss)
-    {}
 };
 
 struct ast_div_op final : public ast_bin_op_t {
@@ -188,9 +178,6 @@ struct ast_div_op final : public ast_bin_op_t {
     ast_div_op(std::shared_ptr<ast_expr_t> lhss,
                std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::DIVISION, lhss, rhss)
-    {}
-    ast_div_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::DIVISION, rhss)
     {}
 };
 
@@ -231,9 +218,6 @@ struct ast_greater_op final : public ast_bin_op_t {
                    std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::GREATER, lhss, rhss)
     {}
-    ast_greater_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::GREATER, rhss)
-    {}
 };
 
 struct ast_less_op final : public ast_bin_op_t {
@@ -247,9 +231,6 @@ struct ast_less_op final : public ast_bin_op_t {
     ast_less_op(std::shared_ptr<ast_expr_t> lhss,
                 std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::LESS, lhss, rhss)
-    {}
-    ast_less_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::LESS, rhss)
     {}
 };
 
@@ -265,9 +246,6 @@ struct ast_greatereq_op final : public ast_bin_op_t {
                      std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::GREATEREQ, lhss, rhss)
     {}
-    ast_greatereq_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::GREATEREQ, rhss)
-    {}
 };
 
 struct ast_lesseq_op final : public ast_bin_op_t {
@@ -281,9 +259,6 @@ struct ast_lesseq_op final : public ast_bin_op_t {
     ast_lesseq_op(std::shared_ptr<ast_expr_t> lhss,
                   std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::LESSEQ, lhss, rhss)
-    {}
-    ast_lesseq_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::LESSEQ, rhss)
     {}
 };
 
@@ -299,9 +274,6 @@ struct ast_equal_op final : public ast_bin_op_t {
                  std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::EQUAL, lhss, rhss)
     {}
-    ast_equal_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::EQUAL, rhss)
-    {}
 };
 
 struct ast_notequal_op final : public ast_bin_op_t {
@@ -315,9 +287,6 @@ struct ast_notequal_op final : public ast_bin_op_t {
     ast_notequal_op(std::shared_ptr<ast_expr_t> lhss,
                     std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::NOTEQUAL, lhss, rhss)
-    {}
-    ast_notequal_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::NOTEQUAL, rhss)
     {}
 };
 
