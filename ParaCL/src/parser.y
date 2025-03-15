@@ -4,6 +4,7 @@
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
 %parse-param {yy::ast_representation_t* astr}
+%expect 35
 
 /* Generate the parser description file. */
  %verbose
