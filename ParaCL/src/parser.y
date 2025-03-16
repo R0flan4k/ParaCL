@@ -88,7 +88,7 @@ program: stmts              { astr->set_root($1); }
 stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | cndtl stmts          { $$ = make_node<stmts_nt>($1, $2); }
      | SEMICOLON stmts      { $$ = std::move($2); }
-     | %empty               { }
+     | %empty               { $$ = make_node<stmts_nt>(); }
 ;
 
 expr: decl                  { $$ = std::move($1); }

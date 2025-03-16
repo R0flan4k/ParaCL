@@ -363,7 +363,7 @@ struct ast_statements_t final : public ast_node_t {
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        ipcl_val res;
+        ipcl_val res{};
         for (auto &&it : seq)
             res = it->Iprocess(st);
         return res;

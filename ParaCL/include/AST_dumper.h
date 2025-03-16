@@ -63,7 +63,7 @@ public:
     void operator()(const ast_node_t &node, int node_id) const
     {
         *debug_stream_ << "\t" << node_id << " [label=\"" << get_label_str(node)
-                       << "\"]\n";
+                       << "\" shape=box]\n";
     }
 };
 
