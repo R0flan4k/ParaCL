@@ -154,7 +154,7 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
   | IDENT                   { 
                               if (!(astr->is_in_symbol_table($1))) 
                                 throw yy::parser::syntax_error
-                                  ("Undefined variable: " + std::string($1));
+                                  ("Undefined variable: " + std::string($1) + ".");
                               $$ = make_node<var_nt>($1); 
                             }
   | WRITE                   { $$ = make_node<write_nt>(); }
@@ -167,7 +167,7 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
 
 namespace yy {
     void parser::error(const std::string& str) {
-        driver->report_error("Syntax error.");
+        driver->report_error(str);
         throw ExceptsPCL::compilation_error("");
     }
 
