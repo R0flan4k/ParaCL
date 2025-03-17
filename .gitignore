@@ -407,3 +407,4 @@ AST_dump
 AST_dump.png
 ST_dump
 graph
+open_dump.sh

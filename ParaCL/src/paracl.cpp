@@ -2,29 +2,31 @@
 #include "AST_dumper.h"
 #include "paracl.h"
 #include "ast_representation.h"
+#include "lexer.h"
+#include "driver_exceptions.h"
 
 #include <memory>
 #include <fstream>
 
 int main(int argc, char **argv)
 {
-    if (argc < 2)
-    {
-        std::cerr << "Input file expected.\n";
-        return 1;
-    }
-    std::string ifile_name(argv[1]);
-    std::ifstream stream(ifile_name);
-    if (stream.fail())
-    {
-        std::cerr << "File " << ifile_name << " is not exhisting.\n";
-        return 1;
-    }
-
     try
     {
-        std::unique_ptr<FlexLexer> lexer = std::make_unique<yyFlexLexer>(&stream);
-        yy::DriverPCL driver(lexer.release());
+        if (argc < 2)
+        {
+            std::cerr << "Input file expected.\n";
+            return 1;
+        }
+        std::string ifile_name(argv[1]);
+        std::ifstream file_stream(ifile_name);
+        if (file_stream.fail())
+        {
+            std::cerr << "File " << ifile_name << " is not exhisting.\n";
+            return 1;
+        }
+        
+        yy::LexerPCL lexer(&file_stream);
+        yy::DriverPCL driver(&lexer, ifile_name);
         yy::ast_representation_t astr;
         driver.parse(&astr);
 
@@ -32,7 +34,11 @@ int main(int argc, char **argv)
         yy::astr_dumper dumper(&asts, &sts); dumper(astr);
         astr.execute();
     }
-    catch(const std::exception& e)
+    catch (const ExceptsPCL::compilation_error& ce)
+    {
+        return 1;
+    }
+    catch (const std::exception& e)
     {
         std::cerr << e.what() << '\n';
         return 1;

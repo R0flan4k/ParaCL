@@ -107,10 +107,11 @@ private:
         case node_types::STATEMENTS:
         {
             nodes_.try_emplace(id, &node);
+            int stat_i = 1;
             for (auto &&it : static_cast<const ast_statements_t &>(node).seq)
             {
                 int r_id = ids++;
-                edges_.push_back({id, r_id});
+                edges_.push_back({id, r_id, std::to_string(stat_i++)});
                 add_node(*it, r_id);
             }
             break;

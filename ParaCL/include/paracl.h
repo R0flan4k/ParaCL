@@ -2,20 +2,25 @@
 
 #include "AST.h"
 #include "ast_representation.h"
+#include "driver_exceptions.h"
+#include "lexer.h"
 #include "parser.tab.hh"
 #include "symbol_table.h"
-
-#include <FlexLexer.h>
 
 #include <string>
 
 namespace yy {
 
 class DriverPCL final {
-    FlexLexer *plex_;
+    LexerPCL *plex_;
+    std::ostream *report_stream_;
+    std::string file_name_;
 
 public:
-    DriverPCL(FlexLexer *plex) : plex_(plex) {}
+    DriverPCL(LexerPCL *plex, const std::string &fn,
+              std::ostream *rs = &std::cerr)
+        : plex_(plex), report_stream_(rs), file_name_(fn)
+    {}
 
     parser::token_type yylex(parser::semantic_type *yylval)
     {
@@ -29,8 +34,18 @@ public:
             yylval->move<std::string>(tmp);
         }
         if (tt == yy::parser::token_type::ERROR)
-            std::cerr << "Unrecognized lexem." << std::endl;
+        {
+            report_error("Unrecognized lexem " + std::string{plex_->YYText()} +
+                         ".");
+            throw ExceptsPCL::compilation_error("");
+        }
         return tt;
+    }
+
+    void report_error(const std::string &report_str) const
+    {
+        *report_stream_ << file_name_ << ':' << plex_->cur_str()
+                        << ": Error: " << report_str << std::endl;
     }
 
     bool parse(ast_representation_t *astr)

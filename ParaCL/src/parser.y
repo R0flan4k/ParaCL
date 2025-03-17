@@ -15,6 +15,7 @@
 {
     #include "AST.h"
     #include "symbol_table.h"
+    #include "driver_exceptions.h"
     #include <memory>
     #include <string>
 
@@ -166,8 +167,8 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
 
 namespace yy {
     void parser::error(const std::string& str) {
-        std::cout << str;
-        std::terminate();
+        driver->report_error("Syntax error.");
+        throw ExceptsPCL::compilation_error("");
     }
 
     parser::token_type yylex(parser::semantic_type *yylval,
