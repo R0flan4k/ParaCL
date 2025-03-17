@@ -4,7 +4,7 @@
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
 %parse-param {yy::ast_representation_t* astr}
-%expect 35
+%expect 26
 
 /* Generate the parser description file. */
  %verbose
@@ -94,7 +94,6 @@ stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
 
 expr: decl                  { $$ = std::move($1); }
     | epn                   { $$ = std::move($1); }
-    | %empty                { $$ = make_node<empty_op_nt>(); }
 ;
 
 cndtl: ifelsest             { $$ = std::move($1); }
@@ -116,6 +115,7 @@ cond: LPAR expr RPAR        { $$ = std::move($2); }
 ;
 
 body: LCURLY stmts RCURLY   { $$ = std::move($2); }
+    | SEMICOLON             { $$ = make_node<empty_op_nt>(); }
     | expr SEMICOLON        { $$ = std::move($1); }
 ;
 
