@@ -14,7 +14,7 @@ jobs:
         shell: bash
     steps:
     - name: Install flex
-      run: sudo apt-get install flex
+      run: sudo apt install flex libfl-dev
     - name: Install conan
       run: pip install conan
     - name: Checkout repository
