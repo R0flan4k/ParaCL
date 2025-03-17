@@ -13,8 +13,8 @@ jobs:
       run:
         shell: bash
     steps:
-    - name: Install flex
-      run: sudo apt install flex libfl-dev
+    - name: Install flex and g++-10
+      run: sudo apt install flex libfl-dev g++-10
     - name: Install conan
       run: pip install conan
     - name: Checkout repository
