@@ -32,13 +32,9 @@ enum class node_types {
     EMPTY,
 };
 
-struct IIast_node_t {
+struct ast_node_t {
     virtual ipcl_val Iprocess(const symbol_table_t &) const { return {}; }
     virtual ipcl_val Iprocess(symbol_table_t &) const { return {}; }
-    virtual ~IIast_node_t() = default;
-};
-
-struct ast_node_t : public IIast_node_t {
     virtual constexpr node_types get_type() const = 0;
     virtual ~ast_node_t() = default;
 };

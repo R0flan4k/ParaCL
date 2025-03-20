@@ -30,8 +30,11 @@ int main(int argc, char **argv)
         yy::ast_representation_t astr;
         driver.parse(&astr);
 
+#ifndef NDEBUG
         std::ofstream asts("./AST_dump"), sts("./ST_dump");
-        yy::astr_dumper dumper(&asts, &sts); dumper(astr);
+        yy::astr_dumper dumper(&asts, &sts); 
+        dumper(astr);
+#endif
         astr.execute();
     }
     catch (const ExceptsPCL::compilation_error& ce)
