@@ -47,9 +47,9 @@ struct var_val_t final {
     int get() const { return val; }
 };
 
-class symbol_table_t final {
+class symbol_table_t final
+    : private std::unordered_map<std::string, var_val_t> {
     using ElT = var_val_t;
-    std::unordered_map<std::string, ElT> names_;
 
 public:
     using iterator = typename std::unordered_map<std::string, ElT>::iterator;
@@ -58,24 +58,15 @@ public:
 
     symbol_table_t() {}
 
-    iterator begin() { return names_.begin(); }
-    iterator end() { return names_.end(); }
-    const_iterator cbegin() const { return names_.cbegin(); }
-    const_iterator cend() const { return names_.cend(); }
-    bool empty() const { return names_.empty(); }
-    std::size_t size() const { return names_.size(); }
+    using std::unordered_map<std::string, var_val_t>::begin;
+    using std::unordered_map<std::string, var_val_t>::end;
+    using std::unordered_map<std::string, var_val_t>::cbegin;
+    using std::unordered_map<std::string, var_val_t>::cend;
+    using std::unordered_map<std::string, var_val_t>::empty;
+    using std::unordered_map<std::string, var_val_t>::size;
+    using std::unordered_map<std::string, var_val_t>::find;
 
-    iterator find(const std::string &name) { return names_.find(name); }
-
-    const_iterator find(const std::string &name) const
-    {
-        return names_.find(name);
-    }
-
-    iterator add_name(std::string name)
-    {
-        return names_.insert({name, ElT()}).first;
-    }
+    iterator add_name(std::string name) { return insert({name, ElT()}).first; }
 };
 
 class symbol_table_dumper final {
