@@ -4,7 +4,7 @@
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
 %parse-param {yy::ast_representation_t* astr}
-%expect 46
+%expect 44
 
 /* Generate the parser description file. */
  %verbose
@@ -139,7 +139,6 @@ apn: ASSIGNMENT expr        { $$ = make_node<assign_op_nt>($2); }
 
 logics: logics LAND epn     { $$ = make_node<logical_and_op_nt>($1, $3); }
       | logics LOR  epn     { $$ = make_node<logical_or_op_nt>($1, $3); }
-      | LNO  logics         { $$ = make_node<logical_no_op_nt>($2); }
       | epn
 ;
 
@@ -170,7 +169,8 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
   | WRITE                   { $$ = make_node<write_nt>(); }
   | PRINT expr              { $$ = make_node<print_op_nt>($2); }
   | MINUS fn                { $$ = make_node<unminus_op_nt>($2); }
-  | PLUS fn                 { $$ = make_node<unplus_op_nt>($2); }
+  | PLUS  fn                { $$ = make_node<unplus_op_nt>($2); }
+  | LNO   fn                { $$ = make_node<logical_no_op_nt>($2); }
 ;
 
 %%

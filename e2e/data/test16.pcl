@@ -1,0 +1,7 @@
+x = 15 == 14 && 14 < 13 && 17 > 18;
+print x;
+print !x;
+
+y = !x && (1 == 0);
+print y;
+print !y || y;
