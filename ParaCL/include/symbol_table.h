@@ -49,9 +49,8 @@ struct var_val_t final {
 
 class symbol_table_t final
     : private std::unordered_map<std::string, var_val_t> {
-    using ElT = var_val_t;
-
 public:
+    using ElT = var_val_t;
     using iterator = typename std::unordered_map<std::string, ElT>::iterator;
     using const_iterator =
         typename std::unordered_map<std::string, ElT>::const_iterator;
@@ -85,8 +84,11 @@ public:
         }
         *debug_stream_ << "(Size) " << st.size() << std::endl
                        << "(Names)" << std::endl;
-        for (auto start = st.cbegin(), end = st.cend(); start != end; ++start)
-            *debug_stream_ << "\t" << start->first << std::endl;
+        std::for_each(
+            st.cbegin(), st.cend(),
+            [&](const std::pair<std::string, symbol_table_t::ElT> &p) {
+                *debug_stream_ << "\t" << p.first << std::endl;
+            });
     }
 };
 

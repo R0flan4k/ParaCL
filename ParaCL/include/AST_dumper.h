@@ -2,6 +2,7 @@
 
 #include "AST.h"
 
+#include <algorithm>
 #include <iostream>
 
 namespace AST {
@@ -108,12 +109,13 @@ private:
         {
             nodes_.try_emplace(id, &node);
             int stat_i = 1;
-            for (auto &&it : static_cast<const ast_statements_t &>(node).seq)
-            {
-                int r_id = ids++;
-                edges_.push_back({id, r_id, std::to_string(stat_i++)});
-                add_node(*it, r_id);
-            }
+            auto &seq = static_cast<const ast_statements_t &>(node).seq;
+            std::for_each(
+                seq.cbegin(), seq.cend(), [&](std::shared_ptr<ast_node_t> p) {
+                    int r_id = ids++;
+                    edges_.push_back({id, r_id, std::to_string(stat_i++)});
+                    add_node(*p, r_id);
+                });
             break;
         }
         case node_types::IF:
@@ -181,22 +183,26 @@ class ast_dumper final {
 private:
     template <typename Vec> void dump_edges_invis(const Vec &edges) const
     {
-        for (auto &&it : edges)
-            *debug_stream_ << "\t" << it.line.first << " -> " << it.line.second
+        std::for_each(edges.cbegin(), edges.cend(), [&](const dot_edge_t &e) {
+            *debug_stream_ << "\t" << e.line.first << " -> " << e.line.second
                            << " [style=invis]\n";
+        });
     }
 
     template <typename Map> void dump_nodes(const Map &nodes) const
     {
-        for (auto &&it : nodes)
-            node_dumper_(*(it.second), it.first);
+        std::for_each(nodes.cbegin(), nodes.cend(),
+                      [&](const std::pair<int, const ast_node_t *> &p) {
+                          node_dumper_(*(p.second), p.first);
+                      });
     }
 
     template <typename Vec> void dump_edges(const Vec &edges) const
     {
-        for (auto &&it : edges)
-            *debug_stream_ << "\t" << it.line.first << " -> " << it.line.second
-                           << " [style=solid label=\"" << it.label << "\"]\n";
+        std::for_each(edges.cbegin(), edges.cend(), [&](const dot_edge_t &e) {
+            *debug_stream_ << "\t" << e.line.first << " -> " << e.line.second
+                           << " [style=solid label=\"" << e.label << "\"]\n";
+        });
     }
 
 public:

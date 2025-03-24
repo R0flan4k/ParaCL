@@ -360,8 +360,9 @@ struct ast_statements_t final : public ast_node_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
         ipcl_val res{};
-        for (auto &&it : seq)
-            res = it->Iprocess(st);
+        std::for_each(
+            seq.cbegin(), seq.cend(),
+            [&](std::shared_ptr<ast_node_t> p) { res = p->Iprocess(st); });
         return res;
     }
     constexpr node_types get_type() const override
