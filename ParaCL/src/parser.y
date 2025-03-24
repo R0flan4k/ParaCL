@@ -4,7 +4,7 @@
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
 %parse-param {yy::ast_representation_t* astr}
-%expect 26
+%expect 46
 
 /* Generate the parser description file. */
  %verbose
@@ -59,6 +59,9 @@
     RCURLY          "}"
     LPAR            "("
     RPAR            ")"
+    LAND            "&&"
+    LOR             "||"
+    LNO             "!"
     ERROR
 ;
 
@@ -79,6 +82,7 @@
 %nterm <whilest_nt>   whilest
 %nterm <expr_nt>      cond
 %nterm <node_nt>      body
+%nterm <expr_nt>      logics
 
 %start program
 
@@ -93,7 +97,7 @@ stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
 ;
 
 expr: decl                  { $$ = std::move($1); }
-    | epn                   { $$ = std::move($1); }
+    | logics                { $$ = std::move($1); }
 ;
 
 cndtl: ifelsest             { $$ = std::move($1); }
@@ -131,6 +135,12 @@ lval: IDENT                 {
 ;
 
 apn: ASSIGNMENT expr        { $$ = make_node<assign_op_nt>($2); }
+;
+
+logics: logics LAND epn     { $$ = make_node<logical_and_op_nt>($1, $3); }
+      | logics LOR  epn     { $$ = make_node<logical_or_op_nt>($1, $3); }
+      | LNO  logics         { $$ = make_node<logical_no_op_nt>($2); }
+      | epn
 ;
 
 epn: epn PLUS      tpn      { $$ = make_node<plus_op_nt>($1, $3); }

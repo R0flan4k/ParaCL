@@ -34,9 +34,12 @@ using greatereq_op_nt = typename std::shared_ptr<AST::ast_greatereq_op>;
 using lesseq_op_nt = typename std::shared_ptr<AST::ast_lesseq_op>;
 using equal_op_nt = typename std::shared_ptr<AST::ast_equal_op>;
 using notequal_op_nt = typename std::shared_ptr<AST::ast_notequal_op>;
+using logical_and_op_nt = typename std::shared_ptr<AST::ast_logical_and_op>;
+using logical_or_op_nt = typename std::shared_ptr<AST::ast_logical_or_op>;
 using print_op_nt = typename std::shared_ptr<AST::ast_print_op>;
 using unminus_op_nt = typename std::shared_ptr<AST::ast_unminus_op>;
 using unplus_op_nt = typename std::shared_ptr<AST::ast_unplus_op>;
+using logical_no_op_nt = typename std::shared_ptr<AST::ast_logical_no_op>;
 
 using AST::make_node;
 using AST::node_cast;

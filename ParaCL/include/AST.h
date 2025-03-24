@@ -99,6 +99,8 @@ enum class ast_bin_ops {
     LESSEQ,
     EQUAL,
     NOTEQUAL,
+    LAND,
+    LOR,
 };
 
 struct ast_bin_op_t : public ast_expr_t {
@@ -286,10 +288,39 @@ struct ast_notequal_op final : public ast_bin_op_t {
     {}
 };
 
+struct ast_logical_and_op final : public ast_bin_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return {std::get<int>(lhs->Iprocess(st)) &&
+                std::get<int>(rhs->Iprocess(st))};
+    }
+    constexpr const char *op_str() const override { return "&&"; }
+
+    ast_logical_and_op(std::shared_ptr<ast_expr_t> lhss,
+                       std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::LAND, lhss, rhss)
+    {}
+};
+
+struct ast_logical_or_op final : public ast_bin_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return {std::get<int>(lhs->Iprocess(st)) ||
+                std::get<int>(rhs->Iprocess(st))};
+    }
+    constexpr const char *op_str() const override { return "||"; }
+
+    ast_logical_or_op(std::shared_ptr<ast_expr_t> lhss,
+                      std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::LOR, lhss, rhss)
+    {}
+};
+
 enum class ast_un_ops {
     PRINT,
     MINUS,
     PLUS,
+    LNO,
 };
 
 struct ast_un_op_t : public ast_expr_t {
@@ -340,6 +371,18 @@ struct ast_unplus_op final : public ast_un_op_t {
 
     ast_unplus_op(std::shared_ptr<ast_expr_t> rhss)
         : ast_un_op_t(ast_un_ops::PLUS, rhss)
+    {}
+};
+
+struct ast_logical_no_op final : public ast_un_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return !std::get<int>(rhs->Iprocess(st));
+    }
+    constexpr const char *op_str() const override { return "!"; }
+
+    ast_logical_no_op(std::shared_ptr<ast_expr_t> rhss)
+        : ast_un_op_t(ast_un_ops::LNO, rhss)
     {}
 };
 
