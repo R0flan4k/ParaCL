@@ -40,6 +40,7 @@ using print_op_nt = typename std::shared_ptr<AST::ast_print_op>;
 using unminus_op_nt = typename std::shared_ptr<AST::ast_unminus_op>;
 using unplus_op_nt = typename std::shared_ptr<AST::ast_unplus_op>;
 using logical_no_op_nt = typename std::shared_ptr<AST::ast_logical_no_op>;
+using mod_div_op_nt = typename std::shared_ptr<AST::ast_modular_division_op>;
 
 using AST::make_node;
 using AST::node_cast;

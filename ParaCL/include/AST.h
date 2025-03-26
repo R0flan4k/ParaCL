@@ -101,6 +101,7 @@ enum class ast_bin_ops {
     NOTEQUAL,
     LAND,
     LOR,
+    MODDIV
 };
 
 struct ast_bin_op_t : public ast_expr_t {
@@ -313,6 +314,20 @@ struct ast_logical_or_op final : public ast_bin_op_t {
     ast_logical_or_op(std::shared_ptr<ast_expr_t> lhss,
                       std::shared_ptr<ast_expr_t> rhss)
         : ast_bin_op_t(ast_bin_ops::LOR, lhss, rhss)
+    {}
+};
+
+struct ast_modular_division_op final : public ast_bin_op_t {
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        return {std::get<int>(lhs->Iprocess(st)) %
+                std::get<int>(rhs->Iprocess(st))};
+    }
+    constexpr const char *op_str() const override { return "%"; }
+
+    ast_modular_division_op(std::shared_ptr<ast_expr_t> lhss,
+                            std::shared_ptr<ast_expr_t> rhss)
+        : ast_bin_op_t(ast_bin_ops::MODDIV, lhss, rhss)
     {}
 };
 

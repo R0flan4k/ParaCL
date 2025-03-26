@@ -1,0 +1,7 @@
+x = 35;
+y = x + 3;
+z = y = 41;
+
+print x % 5;
+print y % 5;
+print z % 6;

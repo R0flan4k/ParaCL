@@ -4,7 +4,7 @@
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
 %parse-param {yy::ast_representation_t* astr}
-%expect 44
+%expect 53
 
 /* Generate the parser description file. */
  %verbose
@@ -62,6 +62,7 @@
     LAND            "&&"
     LOR             "||"
     LNO             "!"
+    MODDIV          "%"
     ERROR
 ;
 
@@ -155,6 +156,7 @@ epn: epn PLUS      tpn      { $$ = make_node<plus_op_nt>($1, $3); }
 
 tpn: tpn MULTIPLICATION fn  { $$ = make_node<mul_op_nt>($1, $3); }
    | tpn DIVISION       fn  { $$ = make_node<div_op_nt>($1, $3); }
+   | tpn MODDIV         fn  { $$ = make_node<mod_div_op_nt>($1, $3); }
    | fn
 ;
 
