@@ -7,14 +7,15 @@
 
 #include <memory>
 #include <fstream>
+#include <sstream>
 
 int main(int argc, char **argv)
 {
     try
     {
-        if (argc < 2)
+        if (argc < 2 || argc > 2)
         {
-            std::cerr << "Input file expected.\n";
+            std::cerr << "Error. Please use: " << argv[0] << " *src_file*.\n";
             return 1;
         }
         std::string ifile_name(argv[1]);
@@ -24,8 +25,10 @@ int main(int argc, char **argv)
             std::cerr << "File " << ifile_name << " is not exhisting.\n";
             return 1;
         }
-        
-        yy::LexerPCL lexer(&file_stream);
+        std::stringstream buffer;
+        buffer << file_stream.rdbuf();
+
+        yy::LexerPCL lexer(&buffer);
         yy::DriverPCL driver(&lexer, ifile_name);
         yy::ast_representation_t astr;
         driver.parse(&astr);

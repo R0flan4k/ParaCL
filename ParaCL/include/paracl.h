@@ -44,7 +44,7 @@ public:
 
     void report_error(const std::string &report_str) const
     {
-        *report_stream_ << file_name_ << ':' << plex_->cur_str()
+        *report_stream_ << file_name_ << ':' << plex_->cur_str_id()
                         << ": Error: " << report_str << std::endl;
     }
 

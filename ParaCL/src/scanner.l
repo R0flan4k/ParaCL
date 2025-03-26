@@ -4,12 +4,9 @@
 %{
 #include "parser.tab.hh"
 #include "lexer.h"
-
-#define ECHO
 %}
 
 WS     [ \t\v]+
-NL     [\n]
 DIGIT  [0-9]
 DIGIT1 [1-9]
 LETTER [a-zA-Z_]
@@ -19,7 +16,7 @@ NUM    {DIGIT}+
 %%
 
 {WS}
-NL      inc_str_i();
+[\n]    { inc_str_i(); }
 "if"    return yy::parser::token_type::IF;
 "else"  return yy::parser::token_type::ELSE;
 "while" return yy::parser::token_type::WHILE;
