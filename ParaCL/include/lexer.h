@@ -38,11 +38,12 @@ public:
 private:
     void update_line() { strs_.emplace_back(pos_); }
 
-    void update_location()
+    int update_location()
     {
         loc_.first_line = loc_.last_line;
         loc_.first_column = loc_.last_column;
-        for (int i = 0; yytext[i] != '\0'; i++)
+        int i = 0;
+        for (; yytext[i] != '\0'; i++)
         {
             if (yytext[i] == '\n')
             {
@@ -54,6 +55,7 @@ private:
                 loc_.last_column++;
             }
         }
+        return i;
     }
 };
 

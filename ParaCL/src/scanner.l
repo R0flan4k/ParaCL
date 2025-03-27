@@ -5,7 +5,7 @@
 #include "parser.tab.hh"
 #include "lexer.h"
 
-#define YY_USER_ACTION update_location(); ++pos_;
+#define YY_USER_ACTION std::advance(pos_, update_location());
 %}
 
 WS     [ \t\v]+
