@@ -22,9 +22,10 @@ public:
         : plex_(plex), report_stream_(rs), file_name_(fn)
     {}
 
-    parser::token_type yylex(parser::semantic_type *yylval)
+    parser::token_type yylex(parser::semantic_type *yylval, location_t *loc)
     {
         parser::token_type tt = static_cast<parser::token_type>(plex_->yylex());
+        *loc = plex_->get_loc();
         if (tt == yy::parser::token_type::NUMBER)
             yylval->as<int>() = std::stoi(plex_->YYText());
         if (tt == yy::parser::token_type::IDENT)
@@ -35,17 +36,22 @@ public:
         }
         if (tt == yy::parser::token_type::ERROR)
         {
-            report_error("Unrecognized lexem " + std::string{plex_->YYText()} +
-                         ".");
+            report_error("Unrecognized lexem " + std::string{plex_->YYText()},
+                         *loc);
             throw ExceptsPCL::compilation_error("");
         }
         return tt;
     }
 
-    void report_error(const std::string &report_str) const
+    void report_error(const std::string &report_str,
+                      const location_t &loc) const
     {
-        *report_stream_ << file_name_ << ':' << plex_->cur_str_id()
-                        << ": Error: " << report_str << std::endl;
+        *report_stream_ << file_name_ << ':' << loc.first_line + 1
+                        << ": Error: " << report_str << '.' << std::endl
+                        << "  " << loc.first_line + 1 << " | "
+                        << plex_->get_str(loc.first_line) << std::endl
+                        << std::string(loc.first_column + 6, ' ') << '^'
+                        << std::endl;
     }
 
     bool parse(ast_representation_t *astr)

@@ -4,6 +4,8 @@
 %{
 #include "parser.tab.hh"
 #include "lexer.h"
+
+#define YY_USER_ACTION update_location(); ++pos_;
 %}
 
 WS     [ \t\v]+
@@ -16,7 +18,7 @@ NUM    {DIGIT}+
 %%
 
 {WS}
-[\n]    { inc_str_i(); }
+[\n]    { update_line(); }
 "if"    return yy::parser::token_type::IF;
 "else"  return yy::parser::token_type::ELSE;
 "while" return yy::parser::token_type::WHILE;

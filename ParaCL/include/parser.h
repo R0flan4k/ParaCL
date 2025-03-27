@@ -47,3 +47,7 @@ using AST::node_cast;
 
 using bin_ops = AST::ast_bin_ops;
 using un_ops = AST::ast_un_ops;
+
+struct location_t {
+    std::size_t first_line, first_column, last_line, last_column;
+};

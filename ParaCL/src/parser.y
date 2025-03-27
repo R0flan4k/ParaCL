@@ -1,5 +1,6 @@
 %language "c++"
 
+%locations
 %skeleton "lalr1.cc"
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
@@ -10,6 +11,9 @@
  %verbose
 /* Enable run-time traces (yydebug). */
  %define parse.trace 
+
+%define parse.error verbose
+%define api.location.type {location_t}
 
 %code requires 
 {
@@ -32,8 +36,28 @@
     #include "paracl.h"
 
     namespace yy {
-    parser::token_type yylex(parser::semantic_type *yylval,
+    parser::token_type yylex(parser::semantic_type *yylval, location_t* loc,
                              DriverPCL *driver);
+    }
+
+    #define YYLLOC_DEFAULT(Cur, Rhs, N)                   \
+    do                                                    \
+    if (N)                                                \
+    {                                                     \
+      (Cur) = YYRHSLOC(Rhs, N);                           \
+    }                                                     \
+    else                                                  \
+    {                                                     \
+      (Cur).first_line   = (Cur).last_line   =            \
+        YYRHSLOC(Rhs, 0).last_line;                       \
+      (Cur).first_column = (Cur).last_column =            \
+        YYRHSLOC(Rhs, 0).last_column;                     \
+    }                                                     \
+    while (0)
+
+    std::ostream& operator<<(std::ostream& stream, const location_t& loc) 
+    {
+        return stream << loc.first_line << " " << loc.first_column << " " << loc.last_line << " " << loc.last_column;
     }
 }
 
@@ -165,7 +189,7 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
   | IDENT                   { 
                               if (!(astr->is_in_symbol_table($1))) 
                                 throw yy::parser::syntax_error
-                                  ("Undefined variable: " + std::string($1) + ".");
+                                  (@$, "Undefined variable: " + std::string($1));
                               $$ = make_node<var_nt>($1); 
                             }
   | WRITE                   { $$ = make_node<write_nt>(); }
@@ -178,14 +202,15 @@ fn: LPAR expr RPAR          { $$ = std::move($2); }
 %%
 
 namespace yy {
-    void parser::error(const std::string& str) {
-        driver->report_error(str);
+    void parser::error(const location_t& loc, const std::string& str) {
+        driver->report_error(str, loc);
         throw ExceptsPCL::compilation_error("");
     }
 
     parser::token_type yylex(parser::semantic_type *yylval,
+                             location_t *loc,
                              DriverPCL *driver)
     {
-        return driver->yylex(yylval);
+        return driver->yylex(yylval, loc);
     }
 }

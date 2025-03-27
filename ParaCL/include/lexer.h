@@ -4,28 +4,56 @@
 #include <FlexLexer.h>
 #endif
 
+#include "parser.h"
+
 #include <iostream>
 #include <sstream>
+#include <string>
 
 namespace yy {
 
 class LexerPCL final : public yyFlexLexer {
-    int str_i = 1;
-    // std::vector<>
+    location_t loc_{};
+    std::string text;
+
+    using StrIt = typename std::string::const_iterator;
+    std::vector<StrIt> strs_;
+    StrIt pos_;
 
 public:
-    LexerPCL(std::stringstream *istream) : yyFlexLexer(istream) {}
+    LexerPCL(std::stringstream *istream)
+        : yyFlexLexer(istream), text(istream->str()), pos_(text.cbegin())
+    {
+        update_line();
+    }
 
-    int cur_str_id() const { return str_i; }
+    std::string get_str(int i) const
+    {
+        auto start = strs_[i], end = std::find(start, text.cend(), '\n');
+        return std::string{start, end};
+    }
+    const location_t &get_loc() const { return loc_; }
     int yylex() override;
 
 private:
-    void inc_str_i()
+    void update_line() { strs_.emplace_back(pos_); }
+
+    void update_location()
     {
-        ++str_i;
-#if 0
-        char c = yyin.peek();
-#endif
+        loc_.first_line = loc_.last_line;
+        loc_.first_column = loc_.last_column;
+        for (int i = 0; yytext[i] != '\0'; i++)
+        {
+            if (yytext[i] == '\n')
+            {
+                loc_.last_line++;
+                loc_.last_column = 0;
+            }
+            else
+            {
+                loc_.last_column++;
+            }
+        }
     }
 };
 
