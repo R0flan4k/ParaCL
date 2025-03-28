@@ -47,8 +47,8 @@ public:
                       const location_t &loc) const
     {
         *report_stream_ << file_name_ << ':' << loc.first_line + 1 << ':'
-                        << loc.first_column << ": Error: " << report_str << '.'
-                        << std::endl
+                        << loc.first_column + 1 << ": Error: " << report_str
+                        << '.' << std::endl
                         << "   " << loc.first_line + 1 << "\t| "
                         << plex_->get_str(loc.first_line) << std::endl
                         << std::string(loc.first_column + 10, ' ') << '^'

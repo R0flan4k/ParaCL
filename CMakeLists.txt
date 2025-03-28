@@ -64,7 +64,7 @@ target_include_directories(ParaCL.x PUBLIC "${CMAKE_SOURCE_DIR}/ParaCL/include" 
 set(CLANG_FORMAT_SRCS
         ${SRCS}
 	${CMAKE_SOURCE_DIR}/ParaCL/include/*.h
-        ${CMAKE_SOURCE_DIR}/unit_tests/*.cpp
+#        ${CMAKE_SOURCE_DIR}/unit_tests/*.cpp
 )
 add_custom_target(
         clangformat
