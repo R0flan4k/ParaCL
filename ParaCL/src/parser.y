@@ -134,6 +134,7 @@ scope_exit: %empty                    { astr->pop_scope(); }
 stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | cndtl stmts          { $$ = make_node<stmts_nt>($1, $2); }
      | SEMICOLON stmts      { $$ = std::move($2); }
+     | scope stmts          { $$ = make_node<stmts_nt>($1, $2); }
      | %empty               { $$ = make_node<stmts_nt>(); }
 ;
 

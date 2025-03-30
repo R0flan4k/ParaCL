@@ -46,13 +46,17 @@ public:
     void report_error(const std::string &report_str,
                       const location_t &loc) const
     {
+        auto err_line_str = plex_->get_str(loc.first_line);
+        std::size_t ntabs =
+            std::count(err_line_str.cbegin(), err_line_str.cend(), '\t');
+        auto ptr_str = "\t  " + std::string(ntabs, '\t') +
+                       std::string(loc.first_column - ntabs, ' ') + '^';
         *report_stream_ << file_name_ << ':' << loc.first_line + 1 << ':'
                         << loc.first_column + 1 << ": Error: " << report_str
                         << '.' << std::endl
-                        << "   " << loc.first_line + 1 << "\t| "
-                        << plex_->get_str(loc.first_line) << std::endl
-                        << "\t" << std::string(loc.first_column + 2, ' ') << '^'
-                        << std::endl;
+                        << "   " << loc.first_line + 1 << "\t| " << err_line_str
+                        << std::endl
+                        << ptr_str << std::endl;
     }
 
     bool parse(AST::ast_representation_t *astr)
