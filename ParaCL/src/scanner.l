@@ -18,6 +18,7 @@ NUM    {DIGIT}+
 %%
 
 {WS}
+"//".*  { }
 [\n]    { update_line(); }
 "if"    return yy::parser::token_type::IF;
 "else"  return yy::parser::token_type::ELSE;
