@@ -4,7 +4,7 @@
 %skeleton "lalr1.cc"
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
-%parse-param {yy::ast_representation_t* astr}
+%parse-param {AST::ast_representation_t* astr}
 %expect 53
 
 /* Generate the parser description file. */
@@ -25,6 +25,9 @@
 
     namespace yy {
     class DriverPCL;
+    }
+
+    namespace AST {
     class ast_representation_t;
     }
 
@@ -94,6 +97,7 @@
 %token <ident_tt> IDENT
 
 %nterm <stmts_nt>     stmts
+%nterm <scope_nt>     scope
 %nterm <expr_nt>      decl
 %nterm <expr_nt>      expr
 %nterm <lval_nt>      lval
@@ -109,10 +113,22 @@
 %nterm <node_nt>      body
 %nterm <expr_nt>      logics
 
+%nterm scope_entry
+%nterm scope_exit
+
 %start program
 
 %%
-program: stmts              { astr->set_root($1); }
+program: scope_entry stmts scope_exit { astr->set_root(make_node<scope_nt>($2)); }
+;
+
+scope: LCURLY scope_entry stmts scope_exit RCURLY { $$ = make_node<scope_nt>($3); }
+;
+
+scope_entry: %empty                   { astr->emplace_scope(); }
+;
+
+scope_exit: %empty                    { astr->pop_scope(); }
 ;
 
 stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
@@ -143,7 +159,7 @@ whilest: WHILE cond body    { $$ = make_node<whilest_nt>($2, $3); }
 cond: LPAR expr RPAR        { $$ = std::move($2); }
 ;
 
-body: LCURLY stmts RCURLY   { $$ = std::move($2); }
+body: scope                 { $$ = std::move($1); }
     | SEMICOLON             { $$ = make_node<empty_op_nt>(); }
     | expr SEMICOLON        { $$ = std::move($1); }
 ;

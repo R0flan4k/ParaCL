@@ -30,12 +30,12 @@ int main(int argc, char **argv)
 
         yy::LexerPCL lexer(&buffer);
         yy::DriverPCL driver(&lexer, ifile_name);
-        yy::ast_representation_t astr;
+        AST::ast_representation_t astr;
         driver.parse(&astr);
 
 #ifndef NDEBUG
         std::ofstream asts("./AST_dump"), sts("./ST_dump");
-        yy::astr_dumper dumper(&asts, &sts); 
+        AST::astr_dumper dumper(&asts, &sts); 
         dumper(astr);
 #endif
         astr.execute();

@@ -60,7 +60,7 @@ struct ast_var_t : public ast_expr_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
         auto var_val = st.find(name)->second;
-        return ipcl_val{var_val.get()};
+        return ipcl_val{var_val};
     }
     constexpr node_types get_type() const override
     {
@@ -78,7 +78,8 @@ struct ast_empty_op_t final : public ast_expr_t {
 struct ast_lval_t : public ast_var_t {
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
-        IIterator res = st.find(name);
+        IIterator res = st.add_name(name);
+        assert(res != st.end());
         return ipcl_val{res};
     }
     constexpr node_types get_type() const override { return node_types::LVAL; }
@@ -185,7 +186,7 @@ struct ast_assign_op final : public ast_bin_op_t {
     {
         int val = std::get<int>(rhs->Iprocess(st));
         std::get<IIterator>(lhs->Iprocess(const_cast<symbol_table_t &>(st)))
-            ->second.set(val);
+            ->second = val;
         return {val};
     }
     constexpr const char *op_str() const override { return "="; }
@@ -411,17 +412,13 @@ struct ast_write_t final : public ast_expr_t {
     constexpr node_types get_type() const override { return node_types::WRITE; }
 };
 
-struct ast_statements_t final : public ast_node_t {
+struct ast_statements_t : public ast_node_t {
     using deque_t = std::deque<std::shared_ptr<ast_node_t>>;
     deque_t seq;
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        ipcl_val res{};
-        std::for_each(
-            seq.cbegin(), seq.cend(),
-            [&](std::shared_ptr<ast_node_t> p) { res = p->Iprocess(st); });
-        return res;
+        return process_sequency(st);
     }
     constexpr node_types get_type() const override
     {
@@ -434,6 +431,31 @@ struct ast_statements_t final : public ast_node_t {
     {
         if (expr)
             seq.emplace_front(std::move(expr));
+    }
+
+    virtual ~ast_statements_t() = default;
+
+    ipcl_val process_sequency(const symbol_table_t &st) const
+    {
+        ipcl_val res{};
+        std::for_each(
+            seq.cbegin(), seq.cend(),
+            [&](std::shared_ptr<ast_node_t> p) { res = p->Iprocess(st); });
+        return res;
+    }
+};
+
+struct ast_scope_t final : public ast_statements_t {
+    ast_scope_t(std::shared_ptr<ast_statements_t> stmts)
+        : ast_statements_t(*stmts)
+    {}
+
+    ipcl_val Iprocess(const symbol_table_t &st) const override
+    {
+        const_cast<symbol_table_t &>(st).emplace_scope();
+        auto res = process_sequency(st);
+        const_cast<symbol_table_t &>(st).pop_scope();
+        return res;
     }
 };
 

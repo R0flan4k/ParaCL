@@ -1,71 +1,69 @@
 #pragma once
 
+#include <algorithm>
+#include <cassert>
 #include <iostream>
+#include <list>
 #include <memory>
+#include <stack>
 #include <string>
 #include <unordered_map>
 
 namespace AST {
 
-enum class syms {
-    VARIABLE,
-};
+using map_it = std::unordered_map<std::string, int>::iterator;
+using scope_t = std::vector<map_it>;
 
-using el_val_t = int;
-
-struct symbol_table_el_t {
-    syms type;
-    std::string name;
-
-    symbol_table_el_t(syms typee, const std::string &namee)
-        : type(typee), name(namee)
-    {}
-    virtual el_val_t get() const = 0;
-    virtual void set(const el_val_t &) = 0;
-    virtual std::shared_ptr<symbol_table_el_t> copy() const = 0;
-    virtual ~symbol_table_el_t() = default;
-};
-
-struct symbol_table_var_t final : public symbol_table_el_t {
-    el_val_t val;
-
-    symbol_table_var_t(const std::string &name)
-        : symbol_table_el_t(syms::VARIABLE, name)
-    {}
-    el_val_t get() const override { return val; }
-    void set(const el_val_t &v) override { val = v; }
-    std::shared_ptr<symbol_table_el_t> copy() const override
-    {
-        return std::make_unique<symbol_table_var_t>(*this);
-    }
-};
-
-struct var_val_t final {
-    int val;
-    var_val_t() {}
-    void set(int vall) { val = vall; }
-    int get() const { return val; }
-};
-
-class symbol_table_t final
-    : private std::unordered_map<std::string, var_val_t> {
+class scopes_t final : private std::stack<scope_t> {
 public:
-    using ElT = var_val_t;
-    using iterator = typename std::unordered_map<std::string, ElT>::iterator;
+    void add_name(map_it it)
+    {
+        assert(!empty());
+        top().push_back(it);
+    }
+
+    using std::stack<scope_t>::empty;
+    using std::stack<scope_t>::size;
+    using std::stack<scope_t>::top;
+    using std::stack<scope_t>::emplace;
+    using std::stack<scope_t>::pop;
+};
+
+class symbol_table_t final : private std::unordered_map<std::string, int> {
+    scopes_t scopes_;
+
+public:
+    using iterator = map_it;
     using const_iterator =
-        typename std::unordered_map<std::string, ElT>::const_iterator;
+        typename std::unordered_map<std::string, int>::const_iterator;
 
     symbol_table_t() {}
 
-    using std::unordered_map<std::string, var_val_t>::begin;
-    using std::unordered_map<std::string, var_val_t>::end;
-    using std::unordered_map<std::string, var_val_t>::cbegin;
-    using std::unordered_map<std::string, var_val_t>::cend;
-    using std::unordered_map<std::string, var_val_t>::empty;
-    using std::unordered_map<std::string, var_val_t>::size;
-    using std::unordered_map<std::string, var_val_t>::find;
+    using std::unordered_map<std::string, int>::begin;
+    using std::unordered_map<std::string, int>::end;
+    using std::unordered_map<std::string, int>::cbegin;
+    using std::unordered_map<std::string, int>::cend;
+    using std::unordered_map<std::string, int>::empty;
+    using std::unordered_map<std::string, int>::size;
+    using std::unordered_map<std::string, int>::find;
 
-    iterator add_name(std::string name) { return insert({name, ElT()}).first; }
+    iterator add_name(std::string name)
+    {
+        auto insertion = insert({name, 0});
+        if (insertion.second)
+            scopes_.add_name(insertion.first);
+        return insertion.first;
+    }
+
+    void emplace_scope() { scopes_.emplace(); }
+
+    void pop_scope()
+    {
+        auto &cur_scope = scopes_.top();
+        std::for_each(cur_scope.begin(), cur_scope.end(),
+                      [&](map_it pos) { erase(pos); });
+        scopes_.pop();
+    }
 };
 
 class symbol_table_dumper final {
@@ -84,11 +82,10 @@ public:
         }
         *debug_stream_ << "(Size) " << st.size() << std::endl
                        << "(Names)" << std::endl;
-        std::for_each(
-            st.cbegin(), st.cend(),
-            [&](const std::pair<std::string, symbol_table_t::ElT> &p) {
-                *debug_stream_ << "\t" << p.first << std::endl;
-            });
+        std::for_each(st.cbegin(), st.cend(),
+                      [&](const std::pair<std::string, int> &p) {
+                          *debug_stream_ << "\t" << p.first << std::endl;
+                      });
     }
 };
 

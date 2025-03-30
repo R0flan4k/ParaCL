@@ -51,11 +51,11 @@ public:
                         << '.' << std::endl
                         << "   " << loc.first_line + 1 << "\t| "
                         << plex_->get_str(loc.first_line) << std::endl
-                        << std::string(loc.first_column + 10, ' ') << '^'
+                        << "\t" << std::string(loc.first_column + 2, ' ') << '^'
                         << std::endl;
     }
 
-    bool parse(ast_representation_t *astr)
+    bool parse(AST::ast_representation_t *astr)
     {
         parser parser(this, astr);
         // parser.set_debug_level(true);

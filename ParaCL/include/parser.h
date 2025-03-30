@@ -22,6 +22,7 @@ using ifst_nt = typename std::shared_ptr<AST::ast_if_t>;
 using ifelsest_nt = typename std::shared_ptr<AST::ast_ifelse_t>;
 using whilest_nt = typename std::shared_ptr<AST::ast_while_t>;
 using empty_op_nt = typename std::shared_ptr<AST::ast_empty_op_t>;
+using scope_nt = typename std::shared_ptr<AST::ast_scope_t>;
 
 using assign_op_nt = typename std::shared_ptr<AST::ast_assign_op>;
 using div_op_nt = typename std::shared_ptr<AST::ast_div_op>;
