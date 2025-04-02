@@ -133,22 +133,22 @@ scope_exit: %empty                    { astr->pop_scope(); }
 
 stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
      | cndtl stmts          { $$ = make_node<stmts_nt>($1, $2); }
-     | SEMICOLON stmts      { $$ = std::move($2); }
+     | SEMICOLON stmts      { $$ = $2; }
      | scope stmts          { $$ = make_node<stmts_nt>($1, $2); }
      | %empty               { $$ = make_node<stmts_nt>(); }
 ;
 
-expr: decl                  { $$ = std::move($1); }
-    | logics                { $$ = std::move($1); }
+expr: decl                  { $$ = $1; }
+    | logics                { $$ = $1; }
 ;
 
-cndtl: ifelsest             { $$ = std::move($1); }
-     | whilest              { $$ = std::move($1); }
+cndtl: ifelsest             { $$ = $1; }
+     | whilest              { $$ = $1; }
 ;
 
 ifelsest: ifst ELSE ifelsest  { $$ = make_node<ifelsest_nt>($1, $3); }
         | ifst ELSE body      { $$ = make_node<ifelsest_nt>($1, $3); }
-        | ifst                { $$ = std::move($1); }
+        | ifst                { $$ = $1; }
 ;
 
 ifst: IF cond body          { $$ = make_node<ifst_nt>($2, $3); }
@@ -157,12 +157,12 @@ ifst: IF cond body          { $$ = make_node<ifst_nt>($2, $3); }
 whilest: WHILE cond body    { $$ = make_node<whilest_nt>($2, $3); }
 ;
 
-cond: LPAR expr RPAR        { $$ = std::move($2); }
+cond: LPAR expr RPAR        { $$ = $2; }
 ;
 
-body: scope                 { $$ = std::move($1); }
+body: scope                 { $$ = $1; }
     | SEMICOLON             { $$ = make_node<empty_op_nt>(); }
-    | expr SEMICOLON        { $$ = std::move($1); }
+    | expr SEMICOLON        { $$ = $1; }
 ;
 
 decl: lval apn              { 
@@ -192,7 +192,7 @@ epn: epn PLUS      tpn      { $$ = make_node<plus_op_nt>($1, $3); }
    | epn LESS      tpn      { $$ = make_node<less_op_nt>($1, $3); }
    | epn GREATEREQ tpn      { $$ = make_node<greatereq_op_nt>($1, $3); }
    | epn LESSEQ    tpn      { $$ = make_node<lesseq_op_nt>($1, $3); }
-   | tpn                    { $$ = std::move($1); }
+   | tpn                    { $$ = $1; }
 ;
 
 tpn: tpn MULTIPLICATION fn  { $$ = make_node<mul_op_nt>($1, $3); }
@@ -201,7 +201,7 @@ tpn: tpn MULTIPLICATION fn  { $$ = make_node<mul_op_nt>($1, $3); }
    | fn
 ;
 
-fn: LPAR expr RPAR          { $$ = std::move($2); }
+fn: LPAR expr RPAR          { $$ = $2; }
   | NUMBER                  { $$ = make_node<number_nt>($1); }
   | IDENT                   { 
                               if (!(astr->is_in_symbol_table($1))) 
