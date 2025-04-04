@@ -438,9 +438,10 @@ struct ast_statements_t : public ast_node_t {
     ipcl_val process_sequency(const symbol_table_t &st) const
     {
         ipcl_val res{};
-        std::for_each(
-            seq.cbegin(), seq.cend(),
-            [&](std::shared_ptr<ast_node_t> p) { res = p->Iprocess(st); });
+        for (auto &&p : seq)
+        {
+            res = p->Iprocess(st);
+        }
         return res;
     }
 };

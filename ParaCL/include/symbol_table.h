@@ -60,8 +60,8 @@ public:
     void pop_scope()
     {
         auto &cur_scope = scopes_.top();
-        std::for_each(cur_scope.begin(), cur_scope.end(),
-                      [&](map_it pos) { erase(pos); });
+        for (auto &&pos : cur_scope)
+            erase(pos);
         scopes_.pop();
     }
 };
@@ -82,10 +82,8 @@ public:
         }
         *debug_stream_ << "(Size) " << st.size() << std::endl
                        << "(Names)" << std::endl;
-        std::for_each(st.cbegin(), st.cend(),
-                      [&](const std::pair<std::string, int> &p) {
-                          *debug_stream_ << "\t" << p.first << std::endl;
-                      });
+        for (auto &&p : st)
+            *debug_stream_ << "\t" << p.first << std::endl;
     }
 };
 
