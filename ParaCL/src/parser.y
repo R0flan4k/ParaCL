@@ -5,7 +5,6 @@
 %define api.value.type variant
 %param {yy::DriverPCL* driver}
 %parse-param {AST::ast_representation_t* astr}
-%expect 53
 
 /* Generate the parser description file. */
  %verbose
@@ -97,6 +96,7 @@
 %token <ident_tt> IDENT
 
 %nterm <stmts_nt>     stmts
+%nterm <node_nt>      stmt
 %nterm <scope_nt>     scope
 %nterm <expr_nt>      decl
 %nterm <expr_nt>      expr
@@ -131,11 +131,13 @@ scope_entry: %empty                   { astr->emplace_scope(); }
 scope_exit: %empty                    { astr->pop_scope(); }
 ;
 
-stmts: expr SEMICOLON stmts { $$ = make_node<stmts_nt>($1, $3); }
-     | cndtl stmts          { $$ = make_node<stmts_nt>($1, $2); }
-     | SEMICOLON stmts      { $$ = $2; }
-     | scope stmts          { $$ = make_node<stmts_nt>($1, $2); }
+stmts: stmt stmts           { $$ = make_node<stmts_nt>($1, $2); }
      | %empty               { $$ = make_node<stmts_nt>(); }
+
+stmt: expr SEMICOLON { $$ = $1; }
+    | cndtl          { $$ = $1; }
+    | scope          { $$ = $1; }
+    | SEMICOLON      { $$ = make_node<empty_op_nt>(); }
 ;
 
 expr: decl                  { $$ = $1; }
@@ -160,9 +162,7 @@ whilest: WHILE cond body    { $$ = make_node<whilest_nt>($2, $3); }
 cond: LPAR expr RPAR        { $$ = $2; }
 ;
 
-body: scope                 { $$ = $1; }
-    | SEMICOLON             { $$ = make_node<empty_op_nt>(); }
-    | expr SEMICOLON        { $$ = $1; }
+body: stmt                  { $$ = $1; }
 ;
 
 decl: lval apn              { 
