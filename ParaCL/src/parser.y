@@ -112,6 +112,7 @@
 %nterm <expr_nt>      cond
 %nterm <node_nt>      body
 %nterm <expr_nt>      logics
+%nterm <expr_nt>      comp
 
 %nterm scope_entry
 %nterm scope_exit
@@ -179,19 +180,22 @@ lval: IDENT                 {
 apn: ASSIGNMENT expr        { $$ = make_node<assign_op_nt>($2); }
 ;
 
-logics: logics LAND epn     { $$ = make_node<logical_and_op_nt>($1, $3); }
-      | logics LOR  epn     { $$ = make_node<logical_or_op_nt>($1, $3); }
-      | epn
+logics: logics LAND comp     { $$ = make_node<logical_and_op_nt>($1, $3); }
+      | logics LOR  comp     { $$ = make_node<logical_or_op_nt>($1, $3); }
+      | comp
+;
+
+comp: comp EQUAL     epn      { $$ = make_node<equal_op_nt>($1, $3); }
+    | comp NOTEQUAL  epn      { $$ = make_node<notequal_op_nt>($1, $3); }
+    | comp GREATER   epn      { $$ = make_node<greater_op_nt>($1, $3); }
+    | comp LESS      epn      { $$ = make_node<less_op_nt>($1, $3); }
+    | comp GREATEREQ epn      { $$ = make_node<greatereq_op_nt>($1, $3); }
+    | comp LESSEQ    epn      { $$ = make_node<lesseq_op_nt>($1, $3); }
+    | epn                     { $$ = $1; }
 ;
 
 epn: epn PLUS      tpn      { $$ = make_node<plus_op_nt>($1, $3); }
    | epn MINUS     tpn      { $$ = make_node<minus_op_nt>($1, $3); }
-   | epn EQUAL     tpn      { $$ = make_node<equal_op_nt>($1, $3); }
-   | epn NOTEQUAL  tpn      { $$ = make_node<notequal_op_nt>($1, $3); }
-   | epn GREATER   tpn      { $$ = make_node<greater_op_nt>($1, $3); }
-   | epn LESS      tpn      { $$ = make_node<less_op_nt>($1, $3); }
-   | epn GREATEREQ tpn      { $$ = make_node<greatereq_op_nt>($1, $3); }
-   | epn LESSEQ    tpn      { $$ = make_node<lesseq_op_nt>($1, $3); }
    | tpn                    { $$ = $1; }
 ;
 

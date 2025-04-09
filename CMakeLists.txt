@@ -7,15 +7,6 @@ endif()
 find_package(FLEX  REQUIRED)
 find_package(BISON REQUIRED)
 
-#set(BISON_EXECUTABLE "/usr/bin/bison")
-
-#if (BISON_FOUND)
-#	MESSAGE(${BISON_EXECUTABLE} "lol")
-#	MESSAGE(${BISON_VERSION})
-#else()
-#	MESSAGE(Bison not founded)
-#endif()
-
 set(BISON_VARS
     BISON_FOUND
     BISON_EXECUTABLE
