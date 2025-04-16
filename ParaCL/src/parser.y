@@ -168,12 +168,12 @@ body: stmt                  { $$ = $1; }
 
 decl: lval apn              { 
                               $$ = make_node<assign_op_nt>($1, $2);
-                              astr->add_name($1->name);
                             }
 ;
 
 lval: IDENT                 { 
                               $$ = make_node<lval_nt>($1);
+                              astr->add_name($$->name);
                             }
 ;
 

@@ -12,7 +12,7 @@
 
 namespace AST {
 
-using map_it = std::unordered_map<std::string, int>::iterator;
+using map_it = std::unordered_map<std::string_view, int>::iterator;
 using scope_t = std::vector<map_it>;
 
 class scopes_t final : private std::stack<scope_t> {
@@ -30,27 +30,27 @@ public:
     using std::stack<scope_t>::pop;
 };
 
-class symbol_table_t final : private std::unordered_map<std::string, int> {
+class symbol_table_t final : private std::unordered_map<std::string_view, int> {
     scopes_t scopes_;
 
 public:
     using iterator = map_it;
     using const_iterator =
-        typename std::unordered_map<std::string, int>::const_iterator;
+        typename std::unordered_map<std::string_view, int>::const_iterator;
 
     symbol_table_t() {}
 
-    using std::unordered_map<std::string, int>::begin;
-    using std::unordered_map<std::string, int>::end;
-    using std::unordered_map<std::string, int>::cbegin;
-    using std::unordered_map<std::string, int>::cend;
-    using std::unordered_map<std::string, int>::empty;
-    using std::unordered_map<std::string, int>::size;
-    using std::unordered_map<std::string, int>::find;
+    using std::unordered_map<std::string_view, int>::begin;
+    using std::unordered_map<std::string_view, int>::end;
+    using std::unordered_map<std::string_view, int>::cbegin;
+    using std::unordered_map<std::string_view, int>::cend;
+    using std::unordered_map<std::string_view, int>::empty;
+    using std::unordered_map<std::string_view, int>::size;
+    using std::unordered_map<std::string_view, int>::find;
 
     iterator add_name(std::string_view name)
     {
-        auto insertion = insert({std::string{name}, 0});
+        auto insertion = insert({name, 0});
         if (insertion.second)
             scopes_.add_name(insertion.first);
         return insertion.first;
