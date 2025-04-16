@@ -33,13 +33,15 @@ enum class node_types {
 };
 
 struct ast_node_t {
+    const node_types nt;
+    ast_node_t(node_types n_t) : nt(n_t) {}
     virtual ipcl_val Iprocess(const symbol_table_t &) const { return {}; }
     virtual ipcl_val Iprocess(symbol_table_t &) const { return {}; }
-    virtual constexpr node_types get_type() const = 0;
     virtual ~ast_node_t() = default;
 };
 
 struct ast_expr_t : public ast_node_t {
+    ast_expr_t(node_types n_t) : ast_node_t(n_t) {}
     virtual ~ast_expr_t() = default;
 };
 
@@ -47,11 +49,7 @@ struct ast_num_t final : public ast_expr_t {
     int val;
 
     ipcl_val Iprocess(const symbol_table_t &) const override { return val; }
-    constexpr node_types get_type() const override
-    {
-        return node_types::NUMBER;
-    }
-    ast_num_t(int vall) noexcept : val(vall) {}
+    ast_num_t(int vall) noexcept : ast_expr_t(node_types::NUMBER), val(vall) {}
 };
 
 struct ast_var_t : public ast_expr_t {
@@ -62,17 +60,15 @@ struct ast_var_t : public ast_expr_t {
         auto var_val = st.find(name)->second;
         return ipcl_val{var_val};
     }
-    constexpr node_types get_type() const override
-    {
-        return node_types::VARIABLE;
-    }
-    ast_var_t(const std::string &namee) : name(namee) {}
+    ast_var_t(std::string_view namee, node_types n_t = node_types::VARIABLE)
+        : ast_expr_t(n_t), name(namee)
+    {}
     virtual ~ast_var_t() = default;
 };
 
 struct ast_empty_op_t final : public ast_expr_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override { return {}; }
-    constexpr node_types get_type() const override { return node_types::EMPTY; }
+    ast_empty_op_t() : ast_expr_t(node_types::EMPTY) {}
 };
 
 struct ast_lval_t : public ast_var_t {
@@ -82,9 +78,8 @@ struct ast_lval_t : public ast_var_t {
         assert(res != st.end());
         return ipcl_val{res};
     }
-    constexpr node_types get_type() const override { return node_types::LVAL; }
 
-    ast_lval_t(const std::string &namee) : ast_var_t(namee) {}
+    ast_lval_t(std::string_view namee) : ast_var_t(namee, node_types::LVAL) {}
     virtual ~ast_lval_t() = default;
 };
 
@@ -109,16 +104,13 @@ struct ast_bin_op_t : public ast_expr_t {
     ast_bin_ops op;
     std::shared_ptr<ast_expr_t> lhs, rhs;
 
-    constexpr node_types get_type() const override
-    {
-        return node_types::BIN_OP;
-    }
     ast_bin_op_t(ast_bin_ops opp, std::shared_ptr<ast_expr_t> lhss,
                  std::shared_ptr<ast_expr_t> rhss)
-        : op(opp), lhs(std::move(lhss)), rhs(std::move(rhss))
+        : ast_expr_t(node_types::BIN_OP), op(opp), lhs(std::move(lhss)),
+          rhs(std::move(rhss))
     {}
     ast_bin_op_t(ast_bin_ops opp, std::shared_ptr<ast_expr_t> rhss)
-        : op(opp), rhs(std::move(rhss))
+        : ast_expr_t(node_types::BIN_OP), op(opp), rhs(std::move(rhss))
     {}
 
     virtual constexpr const char *op_str() const = 0;
@@ -343,9 +335,8 @@ struct ast_un_op_t : public ast_expr_t {
     ast_un_ops op;
     std::shared_ptr<ast_expr_t> rhs;
 
-    constexpr node_types get_type() const override { return node_types::UN_OP; }
     ast_un_op_t(ast_un_ops opp, std::shared_ptr<ast_expr_t> rhss)
-        : op(opp), rhs(rhss)
+        : ast_expr_t(node_types::UN_OP), op(opp), rhs(rhss)
     {}
 
     virtual constexpr const char *op_str() const = 0;
@@ -409,7 +400,7 @@ struct ast_write_t final : public ast_expr_t {
         std::cin >> tmp;
         return {tmp};
     }
-    constexpr node_types get_type() const override { return node_types::WRITE; }
+    ast_write_t() : ast_expr_t(node_types::WRITE) {}
 };
 
 struct ast_statements_t : public ast_node_t {
@@ -420,14 +411,12 @@ struct ast_statements_t : public ast_node_t {
     {
         return process_sequency(st);
     }
-    constexpr node_types get_type() const override
-    {
-        return node_types::STATEMENTS;
-    }
-    ast_statements_t() {}
+    ast_statements_t(node_types n_t = node_types::STATEMENTS) : ast_node_t(n_t)
+    {}
     ast_statements_t(std::shared_ptr<ast_node_t> expr,
-                     std::shared_ptr<ast_statements_t> other)
-        : seq(other ? std::move(other->seq) : deque_t())
+                     std::shared_ptr<ast_statements_t> other,
+                     node_types n_t = node_types::STATEMENTS)
+        : ast_node_t(n_t), seq(other ? std::move(other->seq) : deque_t())
     {
         if (expr)
             seq.emplace_front(std::move(expr));
@@ -470,9 +459,9 @@ struct ast_if_t : public ast_node_t {
             return body->Iprocess(st);
         return {};
     }
-    constexpr node_types get_type() const override { return node_types::IF; }
-    ast_if_t(std::shared_ptr<ast_expr_t> cond, std::shared_ptr<ast_node_t> bod)
-        : condition(cond), body(bod)
+    ast_if_t(std::shared_ptr<ast_expr_t> cond, std::shared_ptr<ast_node_t> bod,
+             node_types n_t = node_types::IF)
+        : ast_node_t(n_t), condition(cond), body(bod)
     {}
     virtual ~ast_if_t() = default;
 };
@@ -486,13 +475,10 @@ struct ast_ifelse_t final : public ast_if_t {
             return body->Iprocess(st);
         return else_body->Iprocess(st);
     }
-    constexpr node_types get_type() const override
-    {
-        return node_types::IFELSE;
-    }
     ast_ifelse_t(std::shared_ptr<ast_if_t> ifst,
                  std::shared_ptr<ast_node_t> else_bod)
-        : ast_if_t(*ifst), else_body(else_bod)
+        : ast_if_t(ifst->condition, ifst->body, node_types::IFELSE),
+          else_body(else_bod)
     {}
 };
 
@@ -507,10 +493,9 @@ struct ast_while_t final : public ast_node_t {
             res = body->Iprocess(st);
         return res;
     }
-    constexpr node_types get_type() const override { return node_types::WHILE; }
     ast_while_t(std::shared_ptr<ast_expr_t> cond,
                 std::shared_ptr<ast_node_t> bod)
-        : condition(cond), body(bod)
+        : ast_node_t(node_types::WHILE), condition(cond), body(bod)
     {}
 };
 

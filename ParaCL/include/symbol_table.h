@@ -7,6 +7,7 @@
 #include <memory>
 #include <stack>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 namespace AST {
@@ -47,9 +48,9 @@ public:
     using std::unordered_map<std::string, int>::size;
     using std::unordered_map<std::string, int>::find;
 
-    iterator add_name(std::string name)
+    iterator add_name(std::string_view name)
     {
-        auto insertion = insert({name, 0});
+        auto insertion = insert({std::string{name}, 0});
         if (insertion.second)
             scopes_.add_name(insertion.first);
         return insertion.first;

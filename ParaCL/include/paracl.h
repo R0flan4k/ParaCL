@@ -8,6 +8,7 @@
 #include "symbol_table.h"
 
 #include <string>
+#include <string_view>
 
 namespace yy {
 
@@ -17,7 +18,7 @@ class DriverPCL final {
     std::string file_name_;
 
 public:
-    DriverPCL(LexerPCL *plex, const std::string &fn,
+    DriverPCL(LexerPCL *plex, std::string_view fn,
               std::ostream *rs = &std::cerr)
         : plex_(plex), report_stream_(rs), file_name_(fn)
     {}
@@ -43,8 +44,7 @@ public:
         return tt;
     }
 
-    void report_error(const std::string &report_str,
-                      const location_t &loc) const
+    void report_error(std::string_view report_str, const location_t &loc) const
     {
         auto err_line_str = plex_->get_str(loc.first_line);
         std::size_t ntabs =

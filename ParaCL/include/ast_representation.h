@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <string_view>
 #include <unordered_map>
 
 #include "AST.h"
@@ -25,10 +26,10 @@ public:
 
     void pop_scope() { st_.pop_scope(); }
     void emplace_scope() { st_.emplace_scope(); }
-    iterator add_name(std::string name) { return st_.add_name(name); }
-    bool is_in_symbol_table(const std::string &name) const
+    iterator add_name(std::string_view name) { return st_.add_name(name); }
+    bool is_in_symbol_table(std::string_view name) const
     {
-        return st_.find(name) != st_.cend();
+        return st_.find(std::string{name}) != st_.cend();
     }
 
     void execute() const { ast_.execute(st_); }

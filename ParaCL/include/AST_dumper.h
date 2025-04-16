@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <string_view>
 
 namespace AST {
 
@@ -13,7 +14,7 @@ class ast_node_dumper final {
 private:
     std::string get_label_str(const ast_node_t &node) const
     {
-        switch (node.get_type())
+        switch (node.nt)
         {
         case node_types::NUMBER:
             return "Number\\n\\l " +
@@ -71,7 +72,7 @@ public:
 struct dot_edge_t final {
     std::pair<int, int> line;
     std::string label;
-    dot_edge_t(int src, int dst, const std::string &labell = "")
+    dot_edge_t(int src, int dst, std::string_view labell = "")
         : line(src, dst), label(labell)
     {}
 };
@@ -85,7 +86,7 @@ class dot_ast_t final {
 private:
     void add_node(const ast_node_t &node, int id = 0)
     {
-        switch (node.get_type())
+        switch (node.nt)
         {
         case node_types::BIN_OP:
         {
