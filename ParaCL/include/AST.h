@@ -113,7 +113,7 @@ struct ast_bin_op_t : public ast_expr_t {
         : ast_expr_t(node_types::BIN_OP), op(opp), rhs(std::move(rhss))
     {}
 
-    virtual constexpr const char *op_str() const = 0;
+    virtual constexpr std::string_view op_str() const = 0;
     virtual ~ast_bin_op_t() = default;
 };
 
@@ -123,7 +123,7 @@ struct ast_plus_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) +
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "+"; }
+    constexpr std::string_view op_str() const override { return "+"; }
 
     ast_plus_op(std::shared_ptr<ast_expr_t> lhss,
                 std::shared_ptr<ast_expr_t> rhss)
@@ -137,7 +137,7 @@ struct ast_minus_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) -
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "-"; }
+    constexpr std::string_view op_str() const override { return "-"; }
 
     ast_minus_op(std::shared_ptr<ast_expr_t> lhss,
                  std::shared_ptr<ast_expr_t> rhss)
@@ -151,7 +151,7 @@ struct ast_mul_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) *
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "*"; }
+    constexpr std::string_view op_str() const override { return "*"; }
 
     ast_mul_op(std::shared_ptr<ast_expr_t> lhss,
                std::shared_ptr<ast_expr_t> rhss)
@@ -165,7 +165,7 @@ struct ast_div_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) /
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "/"; }
+    constexpr std::string_view op_str() const override { return "/"; }
 
     ast_div_op(std::shared_ptr<ast_expr_t> lhss,
                std::shared_ptr<ast_expr_t> rhss)
@@ -181,7 +181,7 @@ struct ast_assign_op final : public ast_bin_op_t {
             ->second = val;
         return {val};
     }
-    constexpr const char *op_str() const override { return "="; }
+    constexpr std::string_view op_str() const override { return "="; }
 
     ast_assign_op(std::shared_ptr<ast_expr_t> lhss,
                   std::shared_ptr<ast_expr_t> rhss)
@@ -204,7 +204,7 @@ struct ast_greater_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) >
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return ">"; }
+    constexpr std::string_view op_str() const override { return ">"; }
 
     ast_greater_op(std::shared_ptr<ast_expr_t> lhss,
                    std::shared_ptr<ast_expr_t> rhss)
@@ -218,7 +218,7 @@ struct ast_less_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) <
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "<"; }
+    constexpr std::string_view op_str() const override { return "<"; }
 
     ast_less_op(std::shared_ptr<ast_expr_t> lhss,
                 std::shared_ptr<ast_expr_t> rhss)
@@ -232,7 +232,7 @@ struct ast_greatereq_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) >=
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return ">="; }
+    constexpr std::string_view op_str() const override { return ">="; }
 
     ast_greatereq_op(std::shared_ptr<ast_expr_t> lhss,
                      std::shared_ptr<ast_expr_t> rhss)
@@ -246,7 +246,7 @@ struct ast_lesseq_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) <=
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "<="; }
+    constexpr std::string_view op_str() const override { return "<="; }
 
     ast_lesseq_op(std::shared_ptr<ast_expr_t> lhss,
                   std::shared_ptr<ast_expr_t> rhss)
@@ -260,7 +260,7 @@ struct ast_equal_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) ==
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "=="; }
+    constexpr std::string_view op_str() const override { return "=="; }
 
     ast_equal_op(std::shared_ptr<ast_expr_t> lhss,
                  std::shared_ptr<ast_expr_t> rhss)
@@ -274,7 +274,7 @@ struct ast_notequal_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) !=
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "!="; }
+    constexpr std::string_view op_str() const override { return "!="; }
 
     ast_notequal_op(std::shared_ptr<ast_expr_t> lhss,
                     std::shared_ptr<ast_expr_t> rhss)
@@ -288,7 +288,7 @@ struct ast_logical_and_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) &&
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "&&"; }
+    constexpr std::string_view op_str() const override { return "&&"; }
 
     ast_logical_and_op(std::shared_ptr<ast_expr_t> lhss,
                        std::shared_ptr<ast_expr_t> rhss)
@@ -302,7 +302,7 @@ struct ast_logical_or_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) ||
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "||"; }
+    constexpr std::string_view op_str() const override { return "||"; }
 
     ast_logical_or_op(std::shared_ptr<ast_expr_t> lhss,
                       std::shared_ptr<ast_expr_t> rhss)
@@ -316,7 +316,7 @@ struct ast_modular_division_op final : public ast_bin_op_t {
         return {std::get<int>(lhs->Iprocess(st)) %
                 std::get<int>(rhs->Iprocess(st))};
     }
-    constexpr const char *op_str() const override { return "%"; }
+    constexpr std::string_view op_str() const override { return "%"; }
 
     ast_modular_division_op(std::shared_ptr<ast_expr_t> lhss,
                             std::shared_ptr<ast_expr_t> rhss)
@@ -339,7 +339,7 @@ struct ast_un_op_t : public ast_expr_t {
         : ast_expr_t(node_types::UN_OP), op(opp), rhs(rhss)
     {}
 
-    virtual constexpr const char *op_str() const = 0;
+    virtual constexpr std::string_view op_str() const = 0;
     virtual ~ast_un_op_t() = default;
 };
 
@@ -350,7 +350,7 @@ struct ast_print_op final : public ast_un_op_t {
         std::cout << val << std::endl;
         return val;
     }
-    constexpr const char *op_str() const override { return "print"; }
+    constexpr std::string_view op_str() const override { return "print"; }
 
     ast_print_op(std::shared_ptr<ast_expr_t> rhss)
         : ast_un_op_t(ast_un_ops::PRINT, rhss)
@@ -362,7 +362,7 @@ struct ast_unminus_op final : public ast_un_op_t {
     {
         return -std::get<int>(rhs->Iprocess(st));
     }
-    constexpr const char *op_str() const override { return "-"; }
+    constexpr std::string_view op_str() const override { return "-"; }
 
     ast_unminus_op(std::shared_ptr<ast_expr_t> rhss)
         : ast_un_op_t(ast_un_ops::MINUS, rhss)
@@ -374,7 +374,7 @@ struct ast_unplus_op final : public ast_un_op_t {
     {
         return std::get<int>(rhs->Iprocess(st));
     }
-    constexpr const char *op_str() const override { return "+"; }
+    constexpr std::string_view op_str() const override { return "+"; }
 
     ast_unplus_op(std::shared_ptr<ast_expr_t> rhss)
         : ast_un_op_t(ast_un_ops::PLUS, rhss)
@@ -386,7 +386,7 @@ struct ast_logical_no_op final : public ast_un_op_t {
     {
         return !std::get<int>(rhs->Iprocess(st));
     }
-    constexpr const char *op_str() const override { return "!"; }
+    constexpr std::string_view op_str() const override { return "!"; }
 
     ast_logical_no_op(std::shared_ptr<ast_expr_t> rhss)
         : ast_un_op_t(ast_un_ops::LNO, rhss)

@@ -26,10 +26,11 @@ private:
                    static_cast<const ast_var_t &>(node).name + " \\l";
             break;
         case node_types::BIN_OP:
-            return static_cast<const ast_bin_op_t &>(node).op_str();
+            return std::string(
+                static_cast<const ast_bin_op_t &>(node).op_str());
             break;
         case node_types::UN_OP:
-            return static_cast<const ast_un_op_t &>(node).op_str();
+            return std::string(static_cast<const ast_un_op_t &>(node).op_str());
             break;
         case node_types::STATEMENTS:
             return "Statements";
