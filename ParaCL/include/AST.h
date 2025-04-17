@@ -1,6 +1,7 @@
 #pragma once
 
 #include "concepts.h"
+#include "semantic.h"
 #include "symbol_table.h"
 
 #include <cassert>
@@ -11,10 +12,6 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-
-using AST::symbol_table_t;
-using IIterator = typename symbol_table_t::iterator;
-using ipcl_val = typename std::variant<int, IIterator>;
 
 namespace AST {
 
@@ -120,8 +117,9 @@ struct ast_bin_op_t : public ast_expr_t {
 struct ast_plus_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) +
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs + rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "+"; }
 
@@ -134,8 +132,9 @@ struct ast_plus_op final : public ast_bin_op_t {
 struct ast_minus_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) -
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs - rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "-"; }
 
@@ -148,8 +147,9 @@ struct ast_minus_op final : public ast_bin_op_t {
 struct ast_mul_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) *
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs * rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "*"; }
 
@@ -162,8 +162,9 @@ struct ast_mul_op final : public ast_bin_op_t {
 struct ast_div_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) /
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs / rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "/"; }
 
@@ -176,10 +177,9 @@ struct ast_div_op final : public ast_bin_op_t {
 struct ast_assign_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        int val = std::get<int>(rhs->Iprocess(st));
-        std::get<IIterator>(lhs->Iprocess(const_cast<symbol_table_t &>(st)))
-            ->second = val;
-        return {val};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return assign(lhs, rhs); },
+            lhs->Iprocess(const_cast<symbol_table_t &>(st)), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "="; }
 
@@ -201,8 +201,9 @@ struct ast_assign_op final : public ast_bin_op_t {
 struct ast_greater_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) >
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs > rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return ">"; }
 
@@ -215,8 +216,9 @@ struct ast_greater_op final : public ast_bin_op_t {
 struct ast_less_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) <
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs < rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "<"; }
 
@@ -229,8 +231,9 @@ struct ast_less_op final : public ast_bin_op_t {
 struct ast_greatereq_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) >=
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs >= rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return ">="; }
 
@@ -243,8 +246,9 @@ struct ast_greatereq_op final : public ast_bin_op_t {
 struct ast_lesseq_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) <=
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs <= rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "<="; }
 
@@ -257,8 +261,9 @@ struct ast_lesseq_op final : public ast_bin_op_t {
 struct ast_equal_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) ==
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs == rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "=="; }
 
@@ -271,8 +276,9 @@ struct ast_equal_op final : public ast_bin_op_t {
 struct ast_notequal_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) !=
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs != rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "!="; }
 
@@ -285,8 +291,9 @@ struct ast_notequal_op final : public ast_bin_op_t {
 struct ast_logical_and_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) &&
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs && rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "&&"; }
 
@@ -299,8 +306,9 @@ struct ast_logical_and_op final : public ast_bin_op_t {
 struct ast_logical_or_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) ||
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs || rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "||"; }
 
@@ -313,8 +321,9 @@ struct ast_logical_or_op final : public ast_bin_op_t {
 struct ast_modular_division_op final : public ast_bin_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return {std::get<int>(lhs->Iprocess(st)) %
-                std::get<int>(rhs->Iprocess(st))};
+        return std::visit(
+            [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs % rhs; },
+            lhs->Iprocess(st), rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "%"; }
 
@@ -346,9 +355,12 @@ struct ast_un_op_t : public ast_expr_t {
 struct ast_print_op final : public ast_un_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        int val = std::get<int>(rhs->Iprocess(st));
-        std::cout << val << std::endl;
-        return val;
+        return std::visit(
+            [](auto &&el) -> ipcl_val {
+                std::cout << el << std::endl;
+                return el;
+            },
+            rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "print"; }
 
@@ -360,7 +372,8 @@ struct ast_print_op final : public ast_un_op_t {
 struct ast_unminus_op final : public ast_un_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return -std::get<int>(rhs->Iprocess(st));
+        return std::visit([](auto &&el) -> ipcl_val { return -el; },
+                          rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "-"; }
 
@@ -372,7 +385,8 @@ struct ast_unminus_op final : public ast_un_op_t {
 struct ast_unplus_op final : public ast_un_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return std::get<int>(rhs->Iprocess(st));
+        return std::visit([](auto &&el) -> ipcl_val { return el; },
+                          rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "+"; }
 
@@ -384,7 +398,8 @@ struct ast_unplus_op final : public ast_un_op_t {
 struct ast_logical_no_op final : public ast_un_op_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        return !std::get<int>(rhs->Iprocess(st));
+        return std::visit([](auto &&el) -> ipcl_val { return !el; },
+                          rhs->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "!"; }
 
@@ -455,7 +470,7 @@ struct ast_if_t : public ast_node_t {
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        if (std::get<int>(condition->Iprocess(st)))
+        if (std::visit(ast_cond_visitor{}, condition->Iprocess(st)))
             return body->Iprocess(st);
         return {};
     }
@@ -471,7 +486,7 @@ struct ast_ifelse_t final : public ast_if_t {
 
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
-        if (std::get<int>(condition->Iprocess(st)))
+        if (std::visit(ast_cond_visitor{}, condition->Iprocess(st)))
             return body->Iprocess(st);
         return else_body->Iprocess(st);
     }
@@ -489,7 +504,7 @@ struct ast_while_t final : public ast_node_t {
     ipcl_val Iprocess(const symbol_table_t &st) const override
     {
         ipcl_val res;
-        while (std::get<int>(condition->Iprocess(st)))
+        while (std::visit(ast_cond_visitor{}, condition->Iprocess(st)))
             res = body->Iprocess(st);
         return res;
     }
