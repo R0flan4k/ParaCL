@@ -32,7 +32,7 @@ public:
         return st_.find(std::string{name}) != st_.cend();
     }
 
-    void execute() const { ast_.execute(st_); }
+    void execute() { ast_.execute(st_); }
 };
 
 class astr_dumper final {
