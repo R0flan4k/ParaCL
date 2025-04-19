@@ -16,23 +16,28 @@ concept sem_t = (std::is_same_v<T, int> || std::is_same_v<T, IIterator>);
 
 template <sem_t T, sem_t U, bool = true> ipcl_val operator+(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator-(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator*(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator/(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val assign(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <bool = true> ipcl_val assign(IIterator it, int rhs)
 {
@@ -40,61 +45,74 @@ template <bool = true> ipcl_val assign(IIterator it, int rhs)
 }
 template <sem_t T, sem_t U> ipcl_val operator<(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator>(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator<=(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator>=(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U,
           std::enable_if_t<!std::is_same_v<T, U>, bool> = true>
 ipcl_val operator==(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U,
           std::enable_if_t<!std::is_same_v<T, U>, bool> = true>
 ipcl_val operator!=(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator&&(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator||(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T, sem_t U> ipcl_val operator%(T, U)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T> std::ostream operator<<(std::ostream &, T)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T> ipcl_val operator-(T)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 template <sem_t T> ipcl_val operator!(T)
 {
-    throw std::invalid_argument("Invalid argument of operator.");
+    throw std::invalid_argument("Invalid argument of " +
+                                std::string(__FUNCTION__) + '.');
 }
 struct ast_cond_visitor final {
     bool operator()(int el) const { return el; }
     bool operator()(IIterator el) const
     {
-        throw std::invalid_argument("Invalid argument of operator.");
+        throw std::invalid_argument("Invalid argument of " +
+                                    std::string(__FUNCTION__) + '.');
     }
 };
 

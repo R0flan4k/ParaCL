@@ -7,11 +7,11 @@
 #include <cassert>
 #include <deque>
 #include <iostream>
+#include <list>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <variant>
-#include <vector>
 
 namespace AST {
 
@@ -30,9 +30,10 @@ enum class node_types {
 };
 
 struct ast_node_t {
+    using node_ptr = std::shared_ptr<ast_node_t>;
+    using node_it = std::list<node_ptr>::iterator;
     const node_types nt;
     ast_node_t(node_types n_t) : nt(n_t) {}
-    // virtual ipcl_val Iprocess(const symbol_table_t &) const { return {}; }
     virtual ipcl_val Iprocess(symbol_table_t &) const { return {}; }
     virtual ~ast_node_t() = default;
 };
@@ -45,7 +46,6 @@ struct ast_expr_t : public ast_node_t {
 struct ast_num_t final : public ast_expr_t {
     int val;
 
-    // ipcl_val Iprocess(const symbol_table_t &) const override { return val; }
     ipcl_val Iprocess(symbol_table_t &) const override { return val; }
     ast_num_t(int vall) noexcept : ast_expr_t(node_types::NUMBER), val(vall) {}
 };
@@ -100,15 +100,13 @@ enum class ast_bin_ops {
 
 struct ast_bin_op_t : public ast_expr_t {
     ast_bin_ops op;
-    std::shared_ptr<ast_expr_t> lhs, rhs;
+    node_it lhs, rhs;
 
-    ast_bin_op_t(ast_bin_ops opp, std::shared_ptr<ast_expr_t> lhss,
-                 std::shared_ptr<ast_expr_t> rhss)
-        : ast_expr_t(node_types::BIN_OP), op(opp), lhs(std::move(lhss)),
-          rhs(std::move(rhss))
+    ast_bin_op_t(ast_bin_ops opp, node_it lhss, node_it rhss)
+        : ast_expr_t(node_types::BIN_OP), op(opp), lhs(lhss), rhs(rhss)
     {}
-    ast_bin_op_t(ast_bin_ops opp, std::shared_ptr<ast_expr_t> rhss)
-        : ast_expr_t(node_types::BIN_OP), op(opp), rhs(std::move(rhss))
+    ast_bin_op_t(ast_bin_ops opp, node_it rhss)
+        : ast_expr_t(node_types::BIN_OP), op(opp), rhs(rhss)
     {}
 
     virtual constexpr std::string_view op_str() const = 0;
@@ -120,12 +118,11 @@ struct ast_plus_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs + rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "+"; }
 
-    ast_plus_op(std::shared_ptr<ast_expr_t> lhss,
-                std::shared_ptr<ast_expr_t> rhss)
+    ast_plus_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::PLUS, lhss, rhss)
     {}
 };
@@ -135,12 +132,11 @@ struct ast_minus_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs - rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "-"; }
 
-    ast_minus_op(std::shared_ptr<ast_expr_t> lhss,
-                 std::shared_ptr<ast_expr_t> rhss)
+    ast_minus_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::MINUS, lhss, rhss)
     {}
 };
@@ -150,12 +146,11 @@ struct ast_mul_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs * rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "*"; }
 
-    ast_mul_op(std::shared_ptr<ast_expr_t> lhss,
-               std::shared_ptr<ast_expr_t> rhss)
+    ast_mul_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::MULTIPLICATION, lhss, rhss)
     {}
 };
@@ -165,12 +160,11 @@ struct ast_div_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs / rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "/"; }
 
-    ast_div_op(std::shared_ptr<ast_expr_t> lhss,
-               std::shared_ptr<ast_expr_t> rhss)
+    ast_div_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::DIVISION, lhss, rhss)
     {}
 };
@@ -180,23 +174,14 @@ struct ast_assign_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return assign(lhs, rhs); },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "="; }
 
-    ast_assign_op(std::shared_ptr<ast_expr_t> lhss,
-                  std::shared_ptr<ast_expr_t> rhss)
+    ast_assign_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::ASSIGNMENT, lhss, rhss)
     {}
-    ast_assign_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_bin_op_t(ast_bin_ops::ASSIGNMENT, rhss)
-    {}
-    ast_assign_op(std::shared_ptr<ast_lval_t> lhss,
-                  std::shared_ptr<ast_assign_op> other)
-        : ast_bin_op_t(*other)
-    {
-        lhs = lhss;
-    }
+    ast_assign_op(node_it rhss) : ast_bin_op_t(ast_bin_ops::ASSIGNMENT, rhss) {}
 };
 
 struct ast_greater_op final : public ast_bin_op_t {
@@ -204,12 +189,11 @@ struct ast_greater_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs > rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return ">"; }
 
-    ast_greater_op(std::shared_ptr<ast_expr_t> lhss,
-                   std::shared_ptr<ast_expr_t> rhss)
+    ast_greater_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::GREATER, lhss, rhss)
     {}
 };
@@ -219,12 +203,11 @@ struct ast_less_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs < rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "<"; }
 
-    ast_less_op(std::shared_ptr<ast_expr_t> lhss,
-                std::shared_ptr<ast_expr_t> rhss)
+    ast_less_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::LESS, lhss, rhss)
     {}
 };
@@ -234,12 +217,11 @@ struct ast_greatereq_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs >= rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return ">="; }
 
-    ast_greatereq_op(std::shared_ptr<ast_expr_t> lhss,
-                     std::shared_ptr<ast_expr_t> rhss)
+    ast_greatereq_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::GREATEREQ, lhss, rhss)
     {}
 };
@@ -249,12 +231,11 @@ struct ast_lesseq_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs <= rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "<="; }
 
-    ast_lesseq_op(std::shared_ptr<ast_expr_t> lhss,
-                  std::shared_ptr<ast_expr_t> rhss)
+    ast_lesseq_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::LESSEQ, lhss, rhss)
     {}
 };
@@ -264,12 +245,11 @@ struct ast_equal_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs == rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "=="; }
 
-    ast_equal_op(std::shared_ptr<ast_expr_t> lhss,
-                 std::shared_ptr<ast_expr_t> rhss)
+    ast_equal_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::EQUAL, lhss, rhss)
     {}
 };
@@ -279,12 +259,11 @@ struct ast_notequal_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs != rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "!="; }
 
-    ast_notequal_op(std::shared_ptr<ast_expr_t> lhss,
-                    std::shared_ptr<ast_expr_t> rhss)
+    ast_notequal_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::NOTEQUAL, lhss, rhss)
     {}
 };
@@ -294,12 +273,11 @@ struct ast_logical_and_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs && rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "&&"; }
 
-    ast_logical_and_op(std::shared_ptr<ast_expr_t> lhss,
-                       std::shared_ptr<ast_expr_t> rhss)
+    ast_logical_and_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::LAND, lhss, rhss)
     {}
 };
@@ -309,12 +287,11 @@ struct ast_logical_or_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs || rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "||"; }
 
-    ast_logical_or_op(std::shared_ptr<ast_expr_t> lhss,
-                      std::shared_ptr<ast_expr_t> rhss)
+    ast_logical_or_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::LOR, lhss, rhss)
     {}
 };
@@ -324,12 +301,11 @@ struct ast_modular_division_op final : public ast_bin_op_t {
     {
         return std::visit(
             [](auto &&lhs, auto &&rhs) -> ipcl_val { return lhs % rhs; },
-            lhs->Iprocess(st), rhs->Iprocess(st));
+            (*lhs)->Iprocess(st), (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "%"; }
 
-    ast_modular_division_op(std::shared_ptr<ast_expr_t> lhss,
-                            std::shared_ptr<ast_expr_t> rhss)
+    ast_modular_division_op(node_it lhss, node_it rhss)
         : ast_bin_op_t(ast_bin_ops::MODDIV, lhss, rhss)
     {}
 };
@@ -343,9 +319,9 @@ enum class ast_un_ops {
 
 struct ast_un_op_t : public ast_expr_t {
     ast_un_ops op;
-    std::shared_ptr<ast_expr_t> rhs;
+    node_it rhs;
 
-    ast_un_op_t(ast_un_ops opp, std::shared_ptr<ast_expr_t> rhss)
+    ast_un_op_t(ast_un_ops opp, node_it rhss)
         : ast_expr_t(node_types::UN_OP), op(opp), rhs(rhss)
     {}
 
@@ -361,52 +337,44 @@ struct ast_print_op final : public ast_un_op_t {
                 std::cout << el << std::endl;
                 return el;
             },
-            rhs->Iprocess(st));
+            (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "print"; }
 
-    ast_print_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_un_op_t(ast_un_ops::PRINT, rhss)
-    {}
+    ast_print_op(node_it rhss) : ast_un_op_t(ast_un_ops::PRINT, rhss) {}
 };
 
 struct ast_unminus_op final : public ast_un_op_t {
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
         return std::visit([](auto &&el) -> ipcl_val { return -el; },
-                          rhs->Iprocess(st));
+                          (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "-"; }
 
-    ast_unminus_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_un_op_t(ast_un_ops::MINUS, rhss)
-    {}
+    ast_unminus_op(node_it rhss) : ast_un_op_t(ast_un_ops::MINUS, rhss) {}
 };
 
 struct ast_unplus_op final : public ast_un_op_t {
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
         return std::visit([](auto &&el) -> ipcl_val { return el; },
-                          rhs->Iprocess(st));
+                          (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "+"; }
 
-    ast_unplus_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_un_op_t(ast_un_ops::PLUS, rhss)
-    {}
+    ast_unplus_op(node_it rhss) : ast_un_op_t(ast_un_ops::PLUS, rhss) {}
 };
 
 struct ast_logical_no_op final : public ast_un_op_t {
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
         return std::visit([](auto &&el) -> ipcl_val { return !el; },
-                          rhs->Iprocess(st));
+                          (*rhs)->Iprocess(st));
     }
     constexpr std::string_view op_str() const override { return "!"; }
 
-    ast_logical_no_op(std::shared_ptr<ast_expr_t> rhss)
-        : ast_un_op_t(ast_un_ops::LNO, rhss)
-    {}
+    ast_logical_no_op(node_it rhss) : ast_un_op_t(ast_un_ops::LNO, rhss) {}
 };
 
 struct ast_write_t final : public ast_expr_t {
@@ -420,22 +388,26 @@ struct ast_write_t final : public ast_expr_t {
 };
 
 struct ast_statements_t : public ast_node_t {
-    using deque_t = std::deque<std::shared_ptr<ast_node_t>>;
+    using deque_t = std::deque<node_it>;
     deque_t seq;
 
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
         return process_sequency(st);
     }
-    ast_statements_t(node_types n_t = node_types::STATEMENTS) : ast_node_t(n_t)
+    ast_statements_t() : ast_node_t(node_types::STATEMENTS) {}
+    ast_statements_t(node_it other)
+        : ast_node_t(node_types::STATEMENTS),
+          seq(std::move(static_pointer_cast<ast_statements_t>(*other)->seq))
     {}
-    ast_statements_t(std::shared_ptr<ast_node_t> expr,
-                     std::shared_ptr<ast_statements_t> other,
-                     node_types n_t = node_types::STATEMENTS)
-        : ast_node_t(n_t), seq(other ? std::move(other->seq) : deque_t())
+    ast_statements_t(node_it expr, node_it other)
+        : ast_node_t(node_types::STATEMENTS),
+          seq(*other ? std::move(
+                           static_pointer_cast<ast_statements_t>(*other)->seq)
+                     : deque_t())
     {
-        if (expr)
-            seq.emplace_front(std::move(expr));
+        if (*expr)
+            seq.emplace_front(expr);
     }
 
     virtual ~ast_statements_t() = default;
@@ -445,16 +417,14 @@ struct ast_statements_t : public ast_node_t {
         ipcl_val res{};
         for (auto &&p : seq)
         {
-            res = p->Iprocess(st);
+            res = (*p)->Iprocess(st);
         }
         return res;
     }
 };
 
 struct ast_scope_t final : public ast_statements_t {
-    ast_scope_t(std::shared_ptr<ast_statements_t> stmts)
-        : ast_statements_t(*stmts)
-    {}
+    ast_scope_t(node_it stmts) : ast_statements_t(stmts) {}
 
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
@@ -466,51 +436,50 @@ struct ast_scope_t final : public ast_statements_t {
 };
 
 struct ast_if_t : public ast_node_t {
-    std::shared_ptr<ast_expr_t> condition;
-    std::shared_ptr<ast_node_t> body;
+    node_it condition;
+    node_it body;
 
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
-        if (std::visit(ast_cond_visitor{}, condition->Iprocess(st)))
-            return body->Iprocess(st);
+        if (std::visit(ast_cond_visitor{}, (*condition)->Iprocess(st)))
+            return (*body)->Iprocess(st);
         return {};
     }
-    ast_if_t(std::shared_ptr<ast_expr_t> cond, std::shared_ptr<ast_node_t> bod,
-             node_types n_t = node_types::IF)
+    ast_if_t(node_it cond, node_it bod, node_types n_t = node_types::IF)
         : ast_node_t(n_t), condition(cond), body(bod)
     {}
     virtual ~ast_if_t() = default;
 };
 
 struct ast_ifelse_t final : public ast_if_t {
-    std::shared_ptr<ast_node_t> else_body;
+    node_it else_body;
 
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
-        if (std::visit(ast_cond_visitor{}, condition->Iprocess(st)))
-            return body->Iprocess(st);
-        return else_body->Iprocess(st);
+        if (std::visit(ast_cond_visitor{}, (*condition)->Iprocess(st)))
+            return (*body)->Iprocess(st);
+        return (*else_body)->Iprocess(st);
     }
-    ast_ifelse_t(std::shared_ptr<ast_if_t> ifst,
-                 std::shared_ptr<ast_node_t> else_bod)
-        : ast_if_t(ifst->condition, ifst->body, node_types::IFELSE),
+    ast_ifelse_t(node_it ifst, node_it else_bod)
+        : ast_if_t(static_pointer_cast<ast_if_t>(*ifst)->condition,
+                   static_pointer_cast<ast_if_t>(*ifst)->body,
+                   node_types::IFELSE),
           else_body(else_bod)
     {}
 };
 
 struct ast_while_t final : public ast_node_t {
-    std::shared_ptr<ast_expr_t> condition;
-    std::shared_ptr<ast_node_t> body;
+    node_it condition;
+    node_it body;
 
     ipcl_val Iprocess(symbol_table_t &st) const override
     {
         ipcl_val res;
-        while (std::visit(ast_cond_visitor{}, condition->Iprocess(st)))
-            res = body->Iprocess(st);
+        while (std::visit(ast_cond_visitor{}, (*condition)->Iprocess(st)))
+            res = (*body)->Iprocess(st);
         return res;
     }
-    ast_while_t(std::shared_ptr<ast_expr_t> cond,
-                std::shared_ptr<ast_node_t> bod)
+    ast_while_t(node_it cond, node_it bod)
         : ast_node_t(node_types::WHILE), condition(cond), body(bod)
     {}
 };
@@ -523,38 +492,31 @@ public:
 };
 
 class ast_t final : public IIast_t {
-    std::shared_ptr<ast_node_t> root_;
-
 public:
+    using node_it = std::list<std::shared_ptr<ast_node_t>>::iterator;
     using node_ptr = typename std::shared_ptr<ast_node_t>;
 
+private:
+    node_it root_;
+    std::list<node_ptr> nodes_;
+
+public:
     ast_t() noexcept {}
 
-    const ast_node_t &root() const override { return *root_; }
+    const ast_node_t &root() const override { return **root_; }
     int execute(symbol_table_t &st) const override
     {
-        root_->Iprocess(st);
+        (*root_)->Iprocess(st);
         return 0;
     }
 
-    void set_root(node_ptr root) { root_ = std::move(root); }
+    void set_root(node_it root) { root_ = root; }
+
+    template <typename T, class... Args> node_it make_node(Args &&... args)
+    {
+        nodes_.push_back(std::make_shared<T>(std::forward<Args>(args)...));
+        return std::prev(nodes_.end());
+    }
 };
-
-template <smart_pointer T, class... Args> T make_node(Args &&... args)
-{
-    return std::make_shared<typename T::element_type>(
-        std::forward<Args>(args)...);
-}
-
-template <smart_pointer T, typename SrcT>
-T node_cast(const std::shared_ptr<SrcT> &r)
-{
-    return static_pointer_cast<typename T::element_type>(r);
-}
-
-template <smart_pointer T, typename SrcT> T node_cast(std::shared_ptr<SrcT> &&r)
-{
-    return static_pointer_cast<typename T::element_type>(r);
-}
 
 } // namespace AST

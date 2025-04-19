@@ -15,14 +15,18 @@ class ast_representation_t final {
     symbol_table_t st_;
 
 public:
-    using node_ptr = typename ast_t::node_ptr;
+    using node_it = typename ast_t::node_it;
     using iterator = typename symbol_table_t::iterator;
 
     ast_representation_t() : ast_() {}
     const symbol_table_t &get_st() const { return st_; }
     const IIast_t &get_ast() const { return ast_; }
 
-    void set_root(node_ptr root) { return ast_.set_root(root); }
+    void set_root(node_it root) { return ast_.set_root(root); }
+    template <typename T, typename... Args> node_it make_node(Args &&... args)
+    {
+        return ast_.make_node<T, Args...>(std::forward<Args>(args)...);
+    }
 
     void pop_scope() { st_.pop_scope(); }
     void emplace_scope() { st_.emplace_scope(); }

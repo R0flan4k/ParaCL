@@ -95,8 +95,8 @@ private:
             nodes_.try_emplace(id, &node);
             edges_.push_back({id, l_id, "lhs"});
             edges_.push_back({id, r_id, "rhs"});
-            add_node(*(static_cast<const ast_bin_op_t &>(node).lhs), l_id);
-            add_node(*(static_cast<const ast_bin_op_t &>(node).rhs), r_id);
+            add_node(**(static_cast<const ast_bin_op_t &>(node).lhs), l_id);
+            add_node(**(static_cast<const ast_bin_op_t &>(node).rhs), r_id);
             break;
         }
         case node_types::UN_OP:
@@ -104,7 +104,7 @@ private:
             int r_id = ids++;
             nodes_.try_emplace(id, &node);
             edges_.push_back({id, r_id, "operand"});
-            add_node(*(static_cast<const ast_un_op_t &>(node).rhs), r_id);
+            add_node(**(static_cast<const ast_un_op_t &>(node).rhs), r_id);
             break;
         }
         case node_types::STATEMENTS:
@@ -117,7 +117,7 @@ private:
             {
                 int r_id = ids++;
                 edges_.push_back({id, r_id, std::to_string(stat_i++)});
-                add_node(*p, r_id);
+                add_node(**p, r_id);
             }
             break;
         }
@@ -127,8 +127,9 @@ private:
             nodes_.try_emplace(id, &node);
             edges_.push_back({id, cond_id, "cond"});
             edges_.push_back({id, body_id, "body"});
-            add_node(*(static_cast<const ast_if_t &>(node).condition), cond_id);
-            add_node(*(static_cast<const ast_if_t &>(node).body), body_id);
+            add_node(**(static_cast<const ast_if_t &>(node).condition),
+                     cond_id);
+            add_node(**(static_cast<const ast_if_t &>(node).body), body_id);
             break;
         }
         case node_types::IFELSE:
@@ -138,10 +139,10 @@ private:
             edges_.push_back({id, cond_id, "cond"});
             edges_.push_back({id, body_id, "body"});
             edges_.push_back({id, else_body_id, "else_body"});
-            add_node(*(static_cast<const ast_ifelse_t &>(node).condition),
+            add_node(**(static_cast<const ast_ifelse_t &>(node).condition),
                      cond_id);
-            add_node(*(static_cast<const ast_ifelse_t &>(node).body), body_id);
-            add_node(*(static_cast<const ast_ifelse_t &>(node).else_body),
+            add_node(**(static_cast<const ast_ifelse_t &>(node).body), body_id);
+            add_node(**(static_cast<const ast_ifelse_t &>(node).else_body),
                      else_body_id);
             break;
         }
@@ -151,9 +152,9 @@ private:
             nodes_.try_emplace(id, &node);
             edges_.push_back({id, cond_id, "cond"});
             edges_.push_back({id, body_id, "body"});
-            add_node(*(static_cast<const ast_while_t &>(node).condition),
+            add_node(**(static_cast<const ast_while_t &>(node).condition),
                      cond_id);
-            add_node(*(static_cast<const ast_while_t &>(node).body), body_id);
+            add_node(**(static_cast<const ast_while_t &>(node).body), body_id);
             break;
         }
         case node_types::WRITE:
@@ -170,7 +171,11 @@ private:
     }
 
 public:
-    dot_ast_t(const IIast_t *ast) : ast_(ast) { add_node(ast_->root()); }
+    dot_ast_t(const IIast_t *ast) : ast_(ast)
+    {
+        assert(ast);
+        add_node(ast_->root());
+    }
 
     const std::unordered_map<int, const ast_node_t *> &nodes() const
     {
