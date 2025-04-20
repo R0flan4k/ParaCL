@@ -12,7 +12,8 @@
 
 namespace AST {
 
-using map_it = std::unordered_map<std::string_view, int>::iterator;
+template <typename T, typename U> using BaseMap = std::unordered_map<T, U>;
+using map_it = BaseMap<std::string_view, int>::iterator;
 using scope_t = std::vector<map_it>;
 
 class scopes_t final : private std::stack<scope_t> {
@@ -30,23 +31,23 @@ public:
     using std::stack<scope_t>::pop;
 };
 
-class symbol_table_t final : private std::unordered_map<std::string_view, int> {
+class symbol_table_t final : private BaseMap<std::string_view, int> {
     scopes_t scopes_;
 
 public:
     using iterator = map_it;
     using const_iterator =
-        typename std::unordered_map<std::string_view, int>::const_iterator;
+        typename BaseMap<std::string_view, int>::const_iterator;
 
     symbol_table_t() {}
 
-    using std::unordered_map<std::string_view, int>::begin;
-    using std::unordered_map<std::string_view, int>::end;
-    using std::unordered_map<std::string_view, int>::cbegin;
-    using std::unordered_map<std::string_view, int>::cend;
-    using std::unordered_map<std::string_view, int>::empty;
-    using std::unordered_map<std::string_view, int>::size;
-    using std::unordered_map<std::string_view, int>::find;
+    using BaseMap<std::string_view, int>::begin;
+    using BaseMap<std::string_view, int>::end;
+    using BaseMap<std::string_view, int>::cbegin;
+    using BaseMap<std::string_view, int>::cend;
+    using BaseMap<std::string_view, int>::empty;
+    using BaseMap<std::string_view, int>::size;
+    using BaseMap<std::string_view, int>::find;
 
     iterator add_name(std::string_view name)
     {
