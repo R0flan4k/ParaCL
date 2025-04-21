@@ -1,6 +1,7 @@
 #pragma once
 
 #include "concepts.h"
+#include "driver_exceptions.h"
 #include "semantic.h"
 #include "symbol_table.h"
 
@@ -58,6 +59,14 @@ struct ast_var_t : public ast_expr_t {
         auto var_val = st.find(name)->second;
         return ipcl_val{var_val};
     }
+    ast_var_t(std::string_view namee, symbol_table_t &st,
+              node_types n_t = node_types::VARIABLE)
+        : ast_expr_t(n_t), name(namee)
+    {
+        if (st.find(std::string{name}) == st.cend())
+            throw ExceptsPCL::compilation_error("Undefined variable: " +
+                                                std::string(name));
+    }
     ast_var_t(std::string_view namee, node_types n_t = node_types::VARIABLE)
         : ast_expr_t(n_t), name(namee)
     {}
@@ -77,7 +86,11 @@ struct ast_lval_t : public ast_var_t {
         return ipcl_val{res};
     }
 
-    ast_lval_t(std::string_view namee) : ast_var_t(namee, node_types::LVAL) {}
+    ast_lval_t(std::string_view namee, symbol_table_t &st)
+        : ast_var_t(namee, node_types::LVAL)
+    {
+        st.add_name(name);
+    }
     virtual ~ast_lval_t() = default;
 };
 

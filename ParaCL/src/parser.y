@@ -170,8 +170,7 @@ decl: lval ASSIGNMENT expr  { $$ = astr->make_node<ast_assign_op>($1, $3); }
 ;
 
 lval: IDENT                 { 
-                              $$ = astr->make_node<ast_lval_t>($1);
-                              astr->add_name(static_pointer_cast<ast_lval_t>(*$$)->name);
+                              $$ = astr->make_node_st<ast_lval_t>($1);
                             }
 ;
 
@@ -206,10 +205,13 @@ tpn: tpn MULTIPLICATION fn  { $$ = astr->make_node<ast_mul_op>($1, $3); }
 fn: LPAR expr RPAR          { $$ = $2; }
   | NUMBER                  { $$ = astr->make_node<ast_num_t>($1); }
   | IDENT                   { 
-                              if (!(astr->is_in_symbol_table($1))) 
+                              try {
+                                $$ = astr->make_node_st<ast_var_t>($1); 
+                              } catch (ExceptsPCL::compilation_error &ce)
+                              {
                                 throw yy::parser::syntax_error
-                                  (@$, "Undefined variable: " + std::string($1));
-                              $$ = astr->make_node<ast_var_t>($1); 
+                                  (@$, ce.what());
+                              }
                             }
   | WRITE                   { $$ = astr->make_node<ast_write_t>(); }
   | PRINT expr              { $$ = astr->make_node<ast_print_op>($2); }

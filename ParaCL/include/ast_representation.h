@@ -23,9 +23,15 @@ public:
     const IIast_t &get_ast() const { return ast_; }
 
     void set_root(node_it root) { return ast_.set_root(root); }
+
     template <typename T, typename... Args> node_it make_node(Args &&... args)
     {
         return ast_.make_node<T, Args...>(std::forward<Args>(args)...);
+    }
+    template <typename T, typename... Args>
+    node_it make_node_st(Args &&... args)
+    {
+        return ast_.make_node<T, Args...>(std::forward<Args>(args)..., st_);
     }
 
     void pop_scope() { st_.pop_scope(); }
